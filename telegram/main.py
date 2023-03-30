@@ -23,7 +23,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = telegram.Update.de_json(request.get_json(force=True), bot)
-            asyncio.run(send(update.message.chat.id, 'Hello!!!')) # + update.message.text))
+            asyncio.run(send(update.message.chat.id, 'Hello!!!-!!!')) # + update.message.text))
             return ('', 204)
         else:
             return ('Bad request', 400)
