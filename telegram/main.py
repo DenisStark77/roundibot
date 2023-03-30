@@ -19,7 +19,8 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = telegram.Update.de_json(request.get_json(force=True), bot)
-            bot.sendMessage(update.message.chat.id, text='Hello, it is me or not!') # update.message.text
+            async with bot as bot:
+                await bot.sendMessage(update.message.chat.id, text='Hello, hello!') # update.message.text
             return ('', 204)
         else:
             return ('Bad request', 400)
