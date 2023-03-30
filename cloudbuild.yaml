@@ -1,4 +1,4 @@
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['functions', 'deploy', 'tg', '--region', 'us-west1', '--trigger-http', '--entry-point', 'webhook', '--runtime', 'python311', '--allow-unauthenticated']
+  args: ['functions', 'deploy', 'tg', '--source', '.', '--region', 'us-west1', '--trigger-http', '--entry-point', 'webhook', '--runtime', 'python311', '--allow-unauthenticated']
   dir: 'telegram'
