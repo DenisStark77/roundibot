@@ -1,13 +1,9 @@
 import os
-import asyncio
 import traceback
 import functions_framework
 import telegram
 
 bot = telegram.Bot(token=os.environ["TELEGRAM_TOKEN"])
-
-async def send(chat, msg):
-    return await bot.sendMessage(chat_id=chat, text=msg)
 
 @functions_framework.http
 def webhook(request):
@@ -23,7 +19,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = telegram.Update.de_json(request.get_json(force=True), bot)
-            asyncio.run(send(update.message.chat.id, 'Hello, it is me!')) # + update.message.text))
+            bot.sendMessage(update.message.chat.id, text='Hello, it is me!') # update.message.text
             return ('', 204)
         else:
             return ('Bad request', 400)
