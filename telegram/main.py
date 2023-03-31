@@ -6,22 +6,26 @@ import functions_framework
 from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
-
 async def help_command_handler(update, context):
     """Sends explanation on how to use the bot."""
     await update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
     
-#bot = Bot(token=os.environ["TELEGRAM_TOKEN"])
-# Init the Telegram application
-application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
-# define command handler
-application.add_handler(CommandHandler("help", help_command_handler))
-# define message handler
-#dispatcher.add_handler(MessageHandler(filters.text, main_handler))
+# Run async function from webhook
+async def init():
+    # Initialize application
+    await application.initialize()
+    # define command handler
+    application.add_handler(CommandHandler("help", help_command_handler))
+    # define message handler
+    #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 
 # Run async function from webhook
 async def process_update(update):
     return await application.process_update(update)
+
+# Init the Telegram application
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
+asyncio.run(init())
 
 @functions_framework.http
 def webhook(request):
