@@ -3,10 +3,10 @@ import json
 import asyncio
 import traceback
 import functions_framework
-import telegram
-from telegram.ext import Dispatcher, CommandHandler, MessageHandler
+from telegram import Dispatcher, Bot, Update
+from telegram.ext import CommandHandler, MessageHandler, Filters
 
-bot = telegram.Bot(token=os.environ["TELEGRAM_TOKEN"])
+bot = Bot(token=os.environ["TELEGRAM_TOKEN"])
 dispatcher = Dispatcher(bot, None, use_context=True)
 
 # define command handler
@@ -31,7 +31,7 @@ def webhook(request):
     """
     try:
         if request.method == "POST":
-            update = telegram.Update.de_json(request.get_json(force=True), bot)
+            update = Update.de_json(request.get_json(force=True), bot)
             dispatcher.process_update(update)
             return ('', 200)
         else:
