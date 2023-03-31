@@ -19,6 +19,9 @@ application.add_handler(CommandHandler("help", help_command_handler))
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 
+# Run async function from webhook
+async def process_update(update):
+    return await application.process_update(update)
 
 @functions_framework.http
 def webhook(request):
@@ -34,7 +37,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
-            application.process_update(update)
+            asyncio.run(process_update(update))
             return ('', 200)
         else:
             return ('Bad request', 400)
