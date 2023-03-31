@@ -33,7 +33,7 @@ def webhook(request):
     """
     try:
         if request.method == "POST":
-            update = Update.de_json(request.get_json(force=True), bot)
+            update = Update.de_json(request.get_json(force=True), application.bot)
             application.process_update(update)
             return ('', 200)
         else:
