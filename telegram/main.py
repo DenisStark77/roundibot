@@ -3,14 +3,14 @@ import json
 import asyncio
 import traceback
 import functions_framework
-from telegram import Dispatcher, Bot, Update
-from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram import Bot, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Filters
 
-bot = Bot(token=os.environ["TELEGRAM_TOKEN"])
-dispatcher = Dispatcher(bot, None, use_context=True)
+#bot = Bot(token=os.environ["TELEGRAM_TOKEN"])
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
 
 # define command handler
-dispatcher.add_handler(CommandHandler("help", help_command_handler))
+application.add_handler(CommandHandler("help", help_command_handler))
 # define message handler
 #dispatcher.add_handler(MessageHandler(Filters.text, main_handler))
 
@@ -32,7 +32,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), bot)
-            dispatcher.process_update(update)
+            application.process_update(update)
             return ('', 200)
         else:
             return ('Bad request', 400)
