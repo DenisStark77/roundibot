@@ -7,7 +7,7 @@ from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
 
-async def help_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def help_command_handler(update, context):
     """Sends explanation on how to use the bot."""
     await update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
     
