@@ -57,7 +57,9 @@ def webhook(request):
             update = Update.de_json(request.get_json(force=True), application.bot)
             print('DEBUG!!! Updating process', 'Application running:', application.running, application.update_queue.qsize())
             #application.update_queue.put_nowait(update)
-            asyncio.get_event_loop().run_until_complete(process_update(update))
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(process_update(update))
             print('DEBUG!!! update_queue', application.update_queue.qsize())
             return ('', 200)
         else:
