@@ -6,18 +6,25 @@ import functions_framework
 from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
+# /help command wrapper 
 async def help_command_handler(update, context):
     """Sends explanation on how to use the bot."""
+    print('DEBUG!!! Sending reply')
     await update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
-    
+
+
 # Run async function from webhook
 async def init():
     # Initialize application
+    print('DEBUG!!! Initializing')
     await application.initialize()
     # define command handler
+    print('DEBUG!!! Adding handler')
     application.add_handler(CommandHandler("help", help_command_handler))
     # define message handler
     #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
+    print('DEBUG!!! Starting')
+    application.start()
 
 # Run async function from webhook
 async def process_update(update):
@@ -41,6 +48,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
+            print('DEBUG!!! Updating process')
             asyncio.run(process_update(update))
             return ('', 200)
         else:
