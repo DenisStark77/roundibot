@@ -12,7 +12,6 @@ async def help_command_handler(update, context):
     print('DEBUG!!! Sending reply')
     await update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
 
-
 # Run async function from webhook
 async def init():
     # Initialize application
@@ -28,10 +27,10 @@ async def init():
 
 # Run async function from webhook
 async def process_update(update):
-    return await application.process_update(update)
+    return await application.update_queue.put(update)
 
 # Init the Telegram application
-application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
 asyncio.run(init())
 
 @functions_framework.http
