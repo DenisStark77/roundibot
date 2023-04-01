@@ -1,6 +1,5 @@
 import os
 import json
-import asyncio
 import traceback
 import functions_framework
 from telegram import Bot, Update
@@ -10,7 +9,7 @@ from telegram.ext import Dispatcher, CommandHandler, MessageHandler, filters
 def help_command_handler(update, context):
     """Sends explanation on how to use the bot."""
     print('DEBUG!!! Sending reply')
-    await update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
+    update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
 
 # Init the Telegram application
 bot = Bot(token=os.getenv('TELEGRAM_TOKEN'))
