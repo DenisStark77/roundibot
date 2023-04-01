@@ -23,7 +23,7 @@ async def init():
     # define message handler
     #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
     print('DEBUG!!! Starting')
-    application.start()
+    await application.start()
 
 # Run async function from webhook
 async def process_update(update):
