@@ -21,7 +21,9 @@ async def init():
         print('DEBUG!!! Starting')
         await application.start()
     else:    
+        print('DEBUG!!! Stopping')
         await application.stop()
+        print('DEBUG!!! Starting')
         await application.start()
         print('DEBUG!!! Application already running')
     print('DEBUG!!! Started', application.running)
