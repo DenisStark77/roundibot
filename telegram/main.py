@@ -28,8 +28,8 @@ async def init():
 
 
 # Init the Telegram application
-#application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
-application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
+#application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
 # define command handler
 print('DEBUG!!! Adding handler')
 application.add_handler(CommandHandler(["start", "help"], help_command_handler))
