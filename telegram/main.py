@@ -29,7 +29,8 @@ async def process_update(update):
     await asyncio.sleep(5)
 
 # Init the Telegram application
-application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
+#application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
 # define command handler
 print('DEBUG!!! Adding handler')
 application.add_handler(CommandHandler("help", help_command_handler))
