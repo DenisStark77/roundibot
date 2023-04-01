@@ -26,14 +26,14 @@ async def process_update(update):
     print('DEBUG!!! update_queue BEFORE', application.update_queue.qsize())
     await application.update_queue.put(update)
     print('DEBUG!!! update_queue AFTER', application.update_queue.qsize())
-    await asyncio.sleep(5)
+    await asyncio.sleep(1)
 
 # Init the Telegram application
 #application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
 application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
 # define command handler
 print('DEBUG!!! Adding handler')
-application.add_handler(CommandHandler("help", help_command_handler))
+application.add_handler(CommandHandler("start", help_command_handler))
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 asyncio.run(init())
