@@ -17,8 +17,11 @@ async def init():
     # Initialize application
     print('DEBUG!!! Initializing')
     await application.initialize()
-    print('DEBUG!!! Starting')
-    await application.start()
+    if not application.running:
+        print('DEBUG!!! Starting')
+        await application.start()
+    else:    
+        print('DEBUG!!! Application already running')
     print('DEBUG!!! Started', application.running)
 
 
@@ -35,8 +38,7 @@ application.add_handler(CommandHandler("start", help_command_handler))
 
 # Run async function from webhook
 async def process_update(update):
-    if not application.running:
-        await init()
+    await init()
     print('DEBUG!!! update_queue BEFORE', application.update_queue.qsize())
     await application.update_queue.put(update)
     print('DEBUG!!! update_queue AFTER', application.update_queue.qsize())
