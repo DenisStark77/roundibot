@@ -35,11 +35,11 @@ application.add_handler(CommandHandler("start", help_command_handler))
 
 # Run async function from webhook
 async def process_update(update):
-    await init()
+    if not application.running:
+        await init()
     print('DEBUG!!! update_queue BEFORE', application.update_queue.qsize())
     await application.update_queue.put(update)
     print('DEBUG!!! update_queue AFTER', application.update_queue.qsize())
-    await asyncio.sleep(1)
 
 
 @functions_framework.http
