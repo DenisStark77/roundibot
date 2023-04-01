@@ -24,6 +24,7 @@ async def init():
     #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
     print('DEBUG!!! Starting')
     await application.start()
+    print('DEBUG!!! Started', application.running)
 
 # Run async function from webhook
 async def process_update(update):
@@ -47,7 +48,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
-            print('DEBUG!!! Updating process')
+            print('DEBUG!!! Updating process', 'Application running:', application.running)
             asyncio.run(process_update(update))
             return ('', 200)
         else:
