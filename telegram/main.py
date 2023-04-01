@@ -12,8 +12,18 @@ def help_command_handler(update, context):
     update.message.reply_text("Use /issue <asset code> <quantity> to issue your tokens")
 
 # Init the Telegram application
-bot = Bot(token=os.getenv('TELEGRAM_TOKEN'))
-dispatcher = Dispatcher(bot, None, use_context=True)
+if os.getenv('BOT_ENV') == 'TEST':
+    # Create the Updater and pass it your bot's token.
+    updater = Updater(os.getenv('TELEGRAM_TOKEN'))
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+else:
+    # Create the Bot and pass it your bot's token.
+    bot = Bot(token=os.getenv('TELEGRAM_TOKEN'))
+
+    # Create the dispatcher to register handlers
+    dispatcher = Dispatcher(bot, None, use_context=True)
 
 # define command handler
 print('DEBUG!!! Adding handler')
@@ -44,3 +54,17 @@ def webhook(request):
         print('Exception in webhook [%s]' % e)
         traceback.print_exc()
         return ('Exception', 500)
+    
+    
+def main():
+    """Run the bot."""
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
