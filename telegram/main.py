@@ -2,7 +2,7 @@ import os
 import json
 import traceback
 import functions_framework
-from telegram import Bot, Update
+from telegram import Bot, Update, Updater
 from telegram.ext import Dispatcher, CommandHandler, MessageHandler, filters
 
 # /help command wrapper 
