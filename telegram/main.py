@@ -34,7 +34,7 @@ def webhook(request):
     """
     try:
         if request.method == "POST":
-            update = Update.de_json(request.get_json(force=True), application.bot)
+            update = Update.de_json(request.get_json(force=True), bot)
             print('DEBUG!!! Updating process')
             dispatcher.process_update(update, bot)
             return ('', 200)
