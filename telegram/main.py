@@ -28,7 +28,9 @@ async def init():
 
 # Run async function from webhook
 async def process_update(update):
-    return await application.update_queue.put(update)
+    print('DEBUG!!! update_queue BEFORE', application.update_queue.qsize())
+    await application.update_queue.put(update)
+    print('DEBUG!!! update_queue AFTER', application.update_queue.qsize())
 
 # Init the Telegram application
 application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
@@ -48,8 +50,9 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
-            print('DEBUG!!! Updating process', 'Application running:', application.running)
+            print('DEBUG!!! Updating process', 'Application running:', application.running, application.update_queue.qsize())
             asyncio.run(process_update(update))
+            print('DEBUG!!! update_queue', application.update_queue.qsize())
             return ('', 200)
         else:
             return ('Bad request', 400)
