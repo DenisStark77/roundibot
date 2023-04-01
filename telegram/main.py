@@ -21,6 +21,8 @@ async def init():
         print('DEBUG!!! Starting')
         await application.start()
     else:    
+        await application.stop()
+        await application.start()
         print('DEBUG!!! Application already running')
     print('DEBUG!!! Started', application.running)
 
@@ -30,7 +32,7 @@ async def init():
 application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
 # define command handler
 print('DEBUG!!! Adding handler')
-application.add_handler(CommandHandler("start", help_command_handler))
+application.add_handler(CommandHandler(["start", "help"], help_command_handler))
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 #asyncio.run(init())
@@ -59,7 +61,12 @@ def webhook(request):
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
             print('DEBUG!!! Updating process', 'Application running:', application.running, application.update_queue.qsize())
-            asyncio.run(process_update(update))
+            try:
+                loop = asyncio.get_running_loop()
+                loop.run_until_complete(process_update(update))
+            except RuntimeError as r:
+                print('DEBUG!!! No running loop')
+                asyncio.run(process_update(update))
             #application.update_queue.put_nowait(update)
             #loop = asyncio.new_event_loop()
             #asyncio.set_event_loop(loop)
