@@ -17,11 +17,6 @@ async def init():
     # Initialize application
     print('DEBUG!!! Initializing')
     await application.initialize()
-    # define command handler
-    print('DEBUG!!! Adding handler')
-    application.add_handler(CommandHandler("help", help_command_handler))
-    # define message handler
-    #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
     print('DEBUG!!! Starting')
     await application.start()
     print('DEBUG!!! Started', application.running)
@@ -34,6 +29,11 @@ async def process_update(update):
 
 # Init the Telegram application
 application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).updater(None).build()
+# define command handler
+print('DEBUG!!! Adding handler')
+application.add_handler(CommandHandler("help", help_command_handler))
+# define message handler
+#dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 asyncio.run(init())
 
 @functions_framework.http
@@ -51,7 +51,8 @@ def webhook(request):
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
             print('DEBUG!!! Updating process', 'Application running:', application.running, application.update_queue.qsize())
-            asyncio.run(process_update(update))
+            application.update_queue.put_nowait(update)
+            #asyncio.run(process_update(update))
             print('DEBUG!!! update_queue', application.update_queue.qsize())
             return ('', 200)
         else:
