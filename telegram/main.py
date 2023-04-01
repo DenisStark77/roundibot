@@ -30,11 +30,12 @@ print('DEBUG!!! Adding handler')
 application.add_handler(CommandHandler("start", help_command_handler))
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
-asyncio.run(init())
+#asyncio.run(init())
 
 
 # Run async function from webhook
 async def process_update(update):
+    await init()
     print('DEBUG!!! update_queue BEFORE', application.update_queue.qsize())
     await application.update_queue.put(update)
     print('DEBUG!!! update_queue AFTER', application.update_queue.qsize())
@@ -56,10 +57,11 @@ def webhook(request):
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), application.bot)
             print('DEBUG!!! Updating process', 'Application running:', application.running, application.update_queue.qsize())
+            asyncio.run(process_update(update))
             #application.update_queue.put_nowait(update)
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(process_update(update))
+            #loop = asyncio.new_event_loop()
+            #asyncio.set_event_loop(loop)
+            #loop.run_until_complete(process_update(update))
             print('DEBUG!!! update_queue', application.update_queue.qsize())
             return ('', 200)
         else:
