@@ -5,8 +5,8 @@ import functions_framework
 from telegram import Bot, Update
 from telegram.ext import Dispatcher, Updater, CommandHandler, MessageHandler, filters
 
-from google.cloud import datastore
-client = datastore.Client()
+from google.cloud import firestore
+db = firestore.Client()
 
 # /start command wrapper 
 def start_command_handler(update, context):
