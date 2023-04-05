@@ -96,7 +96,7 @@ def book_command_handler(update, context):
 # Init the Telegram application
 if os.getenv('BOT_ENV') == 'TEST':
     # Create the Updater and pass it your bot's token.
-    updater = Updater(os.getenv('TELEGRAM_TOKEN'))
+    updater = Updater(token=os.getenv('TELEGRAM_TOKEN'))
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
