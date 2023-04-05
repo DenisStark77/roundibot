@@ -4,14 +4,50 @@ import traceback
 import functions_framework
 from telegram import Bot, Update
 from telegram.ext import Dispatcher, Updater, CommandHandler, MessageHandler, filters
+from stellar import st_create_account
 
+# Initialize Firestore client
 from google.cloud import firestore
 db = firestore.Client()
+users = db.collection(u'users')
+invites = db.collection(u'invite')
+
 
 # /start command wrapper 
 def start_command_handler(update, context):
     """Sends explanation on how to use the bot."""
-    print('DEBUG!!! Sending reply')
+    print('Message from user: ', update.message.from_user.id, update.message.from_user.username)
+    # Check if uid exist in Firestore
+    uid = update.message.from_user.id
+    user = users.document(uid).get()
+    if user.exists:
+        # TODO: Send context dependent hint what to do next
+        update.message.reply_text("To start use /list command to see available tokens")
+    else:
+        # If not in Firestore check if user is invited
+        username = update.message.from_user.username
+        invite = invites.document(username).get()
+        if not invite.exists:
+            # If not ivited advice to look for the sponsor
+            update.message.reply_text("It's closed community for invite only. Please find a sponsor first!")
+        else:
+            # If invited create the Stellar account and update Firestore
+            keypair = st_create_account()
+            
+            if keypair is None:
+                update.message.reply_text("Something went wrong with creation of Stellar account! Admins are notified. Please try later!")
+                bot.send_message(admin_chat_id, f"User creation failed: @{username}")
+            else:
+                users.document(uid).set({'uid': uid, 'username': username, 'chat_id': update.message.chat.id, 'secret': keypair.secret, 'public': keypair.public_key})
+                update.message.reply_text(f"Your Stellar account cretaed: {keypair.public_key}")
+                
+                # TODO: Send context dependent hint what to do next
+                update.message.reply_text(f"Use /list command to see which assets available around you")
+
+
+# /invite command wrapper 
+def invite_command_handler(update, context):
+    """Sends explanation on how to use the bot."""
     update.message.reply_text("To start use /list command to see available tokens")
 
 # /help command wrapper 
@@ -110,6 +146,7 @@ else:
 # define command handler
 print('DEBUG!!! Adding handler')
 dispatcher.add_handler(CommandHandler("start", start_command_handler))
+dispatcher.add_handler(CommandHandler(["in", "invite"], invite_command_handler))
 dispatcher.add_handler(CommandHandler(["he", "help"], help_command_handler))
 dispatcher.add_handler(CommandHandler(["is", "issue"], issue_command_handler))
 dispatcher.add_handler(CommandHandler(["li", "list"], list_command_handler))
