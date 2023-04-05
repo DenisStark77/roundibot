@@ -18,7 +18,8 @@ def start_command_handler(update, context):
     """Sends explanation on how to use the bot."""
     print('Message from user: ', update.message.from_user.id, update.message.from_user.username)
     # Check if uid exist in Firestore
-    uid = update.message.from_user.id
+    uid = f"{update.message.from_user.id}"
+    chat_id = f"{update.message.chat.id}"
     user = users.document(uid).get()
     if user.exists:
         # TODO: Send context dependent hint what to do next
@@ -38,7 +39,7 @@ def start_command_handler(update, context):
                 update.message.reply_text("Something went wrong with creation of Stellar account! Admins are notified. Please try later!")
                 bot.send_message(admin_chat_id, f"User creation failed: @{username}")
             else:
-                users.document(uid).set({'uid': uid, 'username': username, 'chat_id': update.message.chat.id, 'secret': keypair.secret, 'public': keypair.public_key})
+                users.document(uid).set({'uid': uid, 'username': username, 'chat_id': chat_id, 'secret': keypair.secret, 'public': keypair.public_key})
                 update.message.reply_text(f"Your Stellar account cretaed: {keypair.public_key}")
                 
                 # TODO: Send context dependent hint what to do next
