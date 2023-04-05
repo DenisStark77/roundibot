@@ -1,3 +1,4 @@
+import os
 import requests
 from decimal import Decimal
 from stellar_sdk import Keypair, Server, Asset, Network, TransactionBuilder, LiquidityPoolAsset
