@@ -30,10 +30,8 @@ def st_create_account():
                 network_passphrase=stellar_passphrase,
                 base_fee=100,
             )
-            .append_payment_op(
-                destination=keypair.public_key,
-                asset=Asset.native(),
-                amount="%d" % starting_balance,
+            .append_create_account_op(
+                destination=keypair.public_key, starting_balance="%d" % starting_balance
             )
             .set_timeout(100)
             .build()
