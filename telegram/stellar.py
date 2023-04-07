@@ -46,5 +46,5 @@ def st_create_account():
         else:
             return keypair
     except Exception as err:
-        print(f'st_create_account: Acoount creation failed:{type(err)=}\n{err=}')
+        print(f'st_create_account: Acoount creation failed:{type(err)}\n{err}')
         return None
