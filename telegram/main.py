@@ -131,6 +131,7 @@ def book_command_handler(update, context):
     update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to order other tokens")
 
 # Init the Telegram application
+admin_chat_id = 419686805 # TODO: replace with settings from Firestore
 if os.getenv('BOT_ENV') == 'TEST':
     # Create the Updater and pass it your bot's token.
     updater = Updater(token=os.getenv('TELEGRAM_TOKEN'))
