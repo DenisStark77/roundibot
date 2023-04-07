@@ -56,7 +56,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
     try:
         asset = Asset(code, issuing_public)
         distributor_public = distributor_keypair.public_key
-        distributor_account = server.load_account(distributor_public)
+        distributor_account = stellar.load_account(distributor_public)
 
         # First, the receiving account must trust the asset
         if amount is not None:
@@ -87,7 +87,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
             )
 
         transaction.sign(distributor_keypair)
-        resp = server.submit_transaction(transaction)
+        resp = stellar.submit_transaction(transaction)
         if resp['successful'] != True:
             print(f'st_trust_asset: Trust line transaction failed:\n{trust_transaction_resp}')
             return False
@@ -107,7 +107,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
         # Create Asset
         asset = Asset(code, issuing_public)
 
-        source_account = server.load_account(source_public)
+        source_account = stellar.load_account(source_public)
         # Second, the issuing account actually sends a payment using the asset.
         transaction = (
             TransactionBuilder(
@@ -124,7 +124,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
             .build()
         )
         transaction.sign(source_keypair)
-        resp = server.submit_transaction(transaction)
+        resp = stellar.submit_transaction(transaction)
         if resp['successful'] != True:
             print(f'st_send: Send transaction failed:\n{resp}')
             return None
@@ -148,7 +148,7 @@ def st_issue_asset(distributor_keypair, amount, code):
 
         issuing_public = issuing_keypair.public_key
         distributor_public = distributor_keypair.public_key
-        distributor_account = server.load_account(distributor_public)
+        distributor_account = stellar.load_account(distributor_public)
 
         # First, the receiving account must trust the asset
         if not st_trust_asset(distributor_keypair, code, issuing_public):
