@@ -140,7 +140,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
 def st_issue_asset(distributor_keypair, amount, code):
     try:
         # Create an issuing account
-        issuing_keypair = st_create_account(funding_keypair=distributor_keypair, starting_balance=1)
+        issuing_keypair = st_create_account(starting_balance=1) # TODO: Fund issuing contract from the current user
         
         if issuing_keypair is None:
             print(f'st_issue_asset: Creation of issuing account failed {distributor_keypair.public_key}')
