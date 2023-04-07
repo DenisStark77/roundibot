@@ -18,29 +18,33 @@ bot_public = bot_keypair.public_key
 
 # Function to create an account
 def st_create_account():
-    # Generate new account
-    keypair = Keypair.random()
+    try:
+        # Generate new account
+        keypair = Keypair.random()
 
-    # Sends funds to source new account
-    bot_account = stellar.load_account(bot_public)
-    transaction = (
-        TransactionBuilder(
-            source_account=bot_account,
-            network_passphrase=stellar_passphrase,
-            base_fee=100,
+        # Sends funds to source new account
+        bot_account = stellar.load_account(bot_public)
+        transaction = (
+            TransactionBuilder(
+                source_account=bot_account,
+                network_passphrase=stellar_passphrase,
+                base_fee=100,
+            )
+            .append_payment_op(
+                destination=keypair.public_key,
+                asset=Asset.native(),
+                amount="%d" % starting_balance,
+            )
+            .set_timeout(100)
+            .build()
         )
-        .append_payment_op(
-            destination=keypair.public_key,
-            asset=Asset.native(),
-            amount="%d" % starting_balance,
-        )
-        .set_timeout(100)
-        .build()
-    )
-    transaction.sign(bot_keypair)
-    resp = stellar.submit_transaction(transaction)
-    if resp['successful'] != True:
-        print(f'Initial funds load failed:\n{resp}')
+        transaction.sign(bot_keypair)
+        resp = stellar.submit_transaction(transaction)
+        if resp['successful'] != True:
+            print(f'st_create_account: Initial funds load failed:\n{resp}')
+            return None
+        else:
+            return keypair
+    except Exception as err:
+        print(f'st_create_account: Acoount creation failed:{type(err)=}\n{err=}')
         return None
-    else:
-        return keypair
