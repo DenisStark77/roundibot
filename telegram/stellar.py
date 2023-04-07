@@ -31,7 +31,7 @@ def st_create_account():
         )
         .append_payment_op(
             destination=keypair.public_key,
-            asset='native',
+            asset=Asset.native(),
             amount="%d" % starting_balance,
         )
         .set_timeout(100)
