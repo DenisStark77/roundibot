@@ -16,16 +16,19 @@ bot_public = bot_keypair.public_key
 
 
 # Function to create an account
-def st_create_account(starting_balance = 3):
+def st_create_account(funding_keypair = None, starting_balance = 3):
+    if funding_keypair is None:
+        funding_keypair = bot_keypair
+    
     try:
         # Generate new account
         keypair = Keypair.random()
 
         # Sends funds to source new account
-        bot_account = stellar.load_account(bot_public)
+        funding_account = stellar.load_account(funding_keypair.public_key)
         transaction = (
             TransactionBuilder(
-                source_account=bot_account,
+                source_account=funding_account,
                 network_passphrase=stellar_passphrase,
                 base_fee=100,
             )
@@ -35,7 +38,7 @@ def st_create_account(starting_balance = 3):
             .set_timeout(100)
             .build()
         )
-        transaction.sign(bot_keypair)
+        transaction.sign(funding_keypair)
         resp = stellar.submit_transaction(transaction)
         if resp['successful'] != True:
             print(f'st_create_account: Initial funds load failed:\n{resp}')
@@ -137,7 +140,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
 def st_issue_asset(distributor_keypair, amount, code):
     try:
         # Create an issuing account
-        issuing_keypair = st_create_account(distributor_keypair, starting_balance=1)
+        issuing_keypair = st_create_account(funding_keypair=distributor_keypair, starting_balance=1)
         
         if issuing_keypair is None:
             print(f'st_issue_asset: Creation of issuing account failed {distributor_keypair.public_key}')
@@ -158,5 +161,3 @@ def st_issue_asset(distributor_keypair, amount, code):
     except Exception as err:
         print(f'st_create_account: Acoount creation failed:{type(err)}\n{err}')
         return None
-
-
