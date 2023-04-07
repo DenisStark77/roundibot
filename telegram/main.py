@@ -153,7 +153,7 @@ def list_command_handler(update, context):
 
     for a in assets_stream:
         asset_info = a.to_dict()
-        update.message.reply_text(f"{a.id} issued by @{asset_info['issued_by]}")
+        update.message.reply_text(f"{a.id} issued by @{asset_info['issued_by']}")
     
     update.message.reply_text("Use /trust <asset code> or /trust <asset code> <quantity> to trust the token")
 
