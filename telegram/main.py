@@ -10,7 +10,7 @@ from stellar import st_create_account
 from google.cloud import firestore
 db = firestore.Client()
 users = db.collection(u'users')
-invites = db.collection(u'invite')
+invites = db.collection(u'invites')
 
 
 # /start command wrapper 
