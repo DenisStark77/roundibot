@@ -171,7 +171,7 @@ def st_build_path(path):
 # Function to find payments paths
 def st_paths(account_public, asset, amount):
     try:
-        res = stellar.strict_receive_paths(account_public, asset, amount).call()
+        res = stellar.strict_receive_paths(account_public, asset, "%.5f" % amount).call()
         paths = [{'code': p['source_asset_code'], 'issuer': p['source_asset_issuer'], 'amount': p['source_amount'], 'path': st_build_path(p['path'])} for p in res['_embedded']['records']]
         return paths
     except Exception as err:
