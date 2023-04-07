@@ -27,7 +27,7 @@ def start_command_handler(update, context):
     else:
         # If not in Firestore check if user is invited
         username = update.message.from_user.username
-        invite = invites.document(username).get()
+        invite = invites.document(username.lower()).get()
         if not invite.exists:
             # If not ivited advice to look for the sponsor
             update.message.reply_text("It's closed community for invite only. Please find a sponsor first!")
