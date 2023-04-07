@@ -31,8 +31,8 @@ def start_command_handler(update, context):
         update.message.reply_text("To start use /list command to see available tokens")
     else:
         # If not in Firestore check if user is invited
-        username = update.message.from_user.username
-        invite = invites.document(username.lower()).get()
+        username = update.message.from_user.username.lower()
+        invite = invites.document(username).get()
         if not invite.exists:
             # If not ivited advice to look for the sponsor
             update.message.reply_text("It's closed community for invite only. Please find a sponsor first!")
@@ -58,9 +58,9 @@ def invite_command_handler(update, context):
     if len(context.args) != 1:
         update.message.reply_text("Syntax: /invite <telegram username>")
     else:
-        username = update.message.from_user.username
-        ivitee = context.args[0]
-        invites.document(ivitee.lower()).set({'invited_by': username})
+        username = update.message.from_user.username.lower()
+        ivitee = context.args[0].lower()
+        invites.document(ivitee).set({'invited_by': username})
         update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
         bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
     #TODO: Charge user for the inviting others
