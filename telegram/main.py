@@ -134,6 +134,7 @@ def book_command_handler(update, context):
 if os.getenv('BOT_ENV') == 'TEST':
     # Create the Updater and pass it your bot's token.
     updater = Updater(token=os.getenv('TELEGRAM_TOKEN'))
+    bot = updater.bot
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
