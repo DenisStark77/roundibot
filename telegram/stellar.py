@@ -60,7 +60,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
 
         # First, the receiving account must trust the asset
         if amount is not None:
-            trust_transaction = (
+            transaction = (
                 TransactionBuilder(
                     source_account=distributor_account,
                     network_passphrase=stellar_passphrase,
@@ -73,7 +73,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
                 .build()
             )
         else:
-            trust_transaction = (
+            transaction = (
                 TransactionBuilder(
                     source_account=distributor_account,
                     network_passphrase=stellar_passphrase,
@@ -89,7 +89,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
         transaction.sign(distributor_keypair)
         resp = stellar.submit_transaction(transaction)
         if resp['successful'] != True:
-            print(f'st_trust_asset: Trust line transaction failed:\n{trust_transaction_resp}')
+            print(f'st_trust_asset: Trust line transaction failed:\n{resp}')
             return False
         else:  
             return True
