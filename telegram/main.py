@@ -244,7 +244,7 @@ def send_command_handler(update, context):
     asset = Asset(asset_code, asset_info['public'])
 
     # Check if recepient exist and has a trust line for given asset
-    recepient = strip_user(context.args[0])
+    recepient = strip_user(context.args[2])
     recepients_ref = users.where('username', '==', recepient).stream()
     recepients = [d for d in recepients_ref]
 
