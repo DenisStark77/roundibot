@@ -11,6 +11,7 @@ from google.cloud import firestore
 db = firestore.Client()
 users = db.collection(u'users')
 invites = db.collection(u'invites')
+assets = db.collection(u'assets')
 
 # Telegram bot error handler
 def error(update, context):
@@ -54,17 +55,27 @@ def start_command_handler(update, context):
 # /invite command wrapper 
 def invite_command_handler(update, context):
     """Invite other user to participate in Roundibot."""
-    
+
+    # Check a syntax
     if len(context.args) != 1:
         update.message.reply_text("Syntax: /invite <telegram username>")
-    else:
-        username = update.message.from_user.username.lower()
-        ivitee = context.args[0].lower()
-        invites.document(ivitee).set({'invited_by': username})
-        update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
-        bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
+        return
+    
+    # Check if user is registered in Firebase
+    uid = f"{update.message.from_user.id}"
+    user_rec = users.document(uid).get()
+    if not user_rec.exists:
+        update.message.reply_text("You are not registered yet. Please use command /start")
+        return
+
+    username = update.message.from_user.username.lower()
+    ivitee = context.args[0].lower()
+    invites.document(ivitee).set({'invited_by': username})
+    update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
+    bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
     #TODO: Charge user for the inviting others
 
+    
 # /help command wrapper 
 def help_command_handler(update, context):
     """Sends explanation on how to use the bot."""
@@ -78,12 +89,49 @@ def help_command_handler(update, context):
 
     update.message.reply_text("Use /list command to see available tokens")
 
+    
 # /issue command wrapper 
 def issue_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
-    #TODO: Check if asset code is not exist
-    #TODO: If exist and belong to current user issue extra tokens
-    #TODO: If not exist create and issue tokens
+    """Issue new asset or additional amount of existing one."""
+
+    # Check a sintax
+    if len(context.args) != 2 or not context.args[1].isnumeric():
+        update.message.reply_text("Syntax: /issue <asset code> <quantity>")
+        return
+    
+    # Check if user is registered in Firebase
+    uid = f"{update.message.from_user.id}"
+    user_rec = users.document(uid).get()
+    user_info = user_rec.to_dict()
+    
+    if not user_rec.exists:
+        update.message.reply_text("You are not registered yet. Please use command /start")
+        return
+
+    #TODO: Check if user has trusted assets and balances if not ask to use other's assets first
+    
+    username = update.message.from_user.username.lower()
+    asset_code = context.args[0]
+    quantity = int(context.args[1])
+
+    # Check if asset code is exist
+    asset_rec = assets.document(asset_code).get()
+    if asset_rec.exists:
+        asset_info = asset_rec.to_dict()
+
+        # If exist and belong to current user issue extra tokens
+        if asset_info['issued_by'] == username:
+            issuer_keypair = Keypair.from_secret(asset_info['seed'])
+            res = st_send(issuer_keypair, user_info['public'], asset_code, issuer_keypair.public_key, quantity)
+            if res:
+                update.message.reply_text(f"{quantity} of {asset_code} issued and transfered to your account. Use /balance to check it.")
+            else:
+                update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+                bot.send_message(admin_chat_id, f"User @{username} fail to create asset {asset_code}")
+        else:
+            update.message.reply_text(f"Asset code {asset_code} already in used. Please use another one.")
+    else:
+        # If not exist create and issue tokens
     
     update.message.reply_text("Ask your counterparty to use /trust <asset> command, so you'll be able to transfer tokens to them.")
 
