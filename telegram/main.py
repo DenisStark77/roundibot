@@ -16,7 +16,7 @@ invites = db.collection(u'invites')
 # /start command wrapper 
 def start_command_handler(update, context):
     """Sends explanation on how to use the bot."""
-    print('Message from user: ', update.message.from_user.id, update.message.from_user.username)
+    print('Message from user: ', update.message.from_user.id, update.message.from_user.username, update.message.chat.id)
     # Check if uid exist in Firestore
     uid = f"{update.message.from_user.id}"
     chat_id = f"{update.message.chat.id}"
