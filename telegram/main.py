@@ -5,7 +5,7 @@ import functions_framework
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup 
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from stellar_sdk import Keypair, Asset
-from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset
+from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict
 
 
 # Initialize Firestore client
