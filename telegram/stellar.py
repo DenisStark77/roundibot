@@ -26,7 +26,7 @@ def st_create_account():
     transaction = (
         TransactionBuilder(
             source_account=bot_account,
-            network_passphrase=network_passphrase,
+            network_passphrase=stellar_passphrase,
             base_fee=100,
         )
         .append_payment_op(
