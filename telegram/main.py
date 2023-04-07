@@ -245,19 +245,19 @@ def send_command_handler(update, context):
 
     # Check if recepient exist and has a trust line for given asset
     recepient = strip_user(context.args[0])
-    user_ref = users.where('username', '==', recepient).stream()
-    users = [d for d in user_ref]
+    recepients_ref = users.where('username', '==', recepient).stream()
+    recepients = [d for d in recepients_ref]
 
-    if len(users) == 0:
+    if len(recepients) == 0:
         update.message.reply_text(f"Recepient user @{recepient} does not exist.")
         print(f"send_command_handler: Recepient user @{recepient} does not exist.")
         return
-    elif len(users) > 1:
+    elif len(recepients) > 1:
         update.message.reply_text(f"Duplicate username @{recepient}. Transfer could not be made.")
         print(f"send_command_handler: Duplicate username @{recepient}. Transfer could not be made.")
         return
 
-    recipient_info = users[0].to_dict()
+    recipient_info = recepients[0].to_dict()
     
     # Search available paths to pay given tokens
     paths = st_paths(user_info['public'], asset, amount)
