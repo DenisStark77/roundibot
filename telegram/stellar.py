@@ -16,7 +16,7 @@ bot_public = bot_keypair.public_key
 
 
 # Function to create an account
-def st_create_account(funding_keypair = None, starting_balance = 3):
+def st_create_account(funding_keypair = None, starting_balance = 5):
     if funding_keypair is None:
         funding_keypair = bot_keypair
     
@@ -94,7 +94,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
         else:  
             return True
     except Exception as err:
-        print(f'st_trust_asset: Acoount creation failed:{type(err)}\n{err}')
+        print(f'st_trust_asset: Set trust failed:{type(err)}\n{err}')
         return None
 
 
@@ -131,7 +131,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
         else:
             return True
     except Exception as err:
-        print(f'st_create_account: Acoount creation failed:{type(err)}\n{err}')
+        print(f'st_send: Send failed:{type(err)}\n{err}')
         return None
     
     
@@ -159,5 +159,5 @@ def st_issue_asset(distributor_keypair, amount, code):
 
         return issuing_keypair
     except Exception as err:
-        print(f'st_create_account: Acoount creation failed:{type(err)}\n{err}')
+        print(f'st_issue_asset: Asset issue failed:{type(err)}\n{err}')
         return None
