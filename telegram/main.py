@@ -58,6 +58,7 @@ def invite_command_handler(update, context):
     if len(context.args) != 1:
         update.message.reply_text("Syntax: /invite <telegram username>")
     else:
+        username = update.message.from_user.username
         ivitee = context.args[0]
         invites.document(ivitee.lower()).set({'invited_by': username})
         update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
