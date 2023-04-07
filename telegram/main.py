@@ -12,7 +12,12 @@ db = firestore.Client()
 users = db.collection(u'users')
 invites = db.collection(u'invites')
 
-
+# Telegram bot error handler
+def error(update, context):
+    """Log Errors caused by Updates."""
+    print('Update "%s" caused error "%s"', update, context.error)
+    
+    
 # /start command wrapper 
 def start_command_handler(update, context):
     """Initialize wallet by creating Stellar account."""
@@ -167,6 +172,7 @@ dispatcher.add_handler(CommandHandler(["or", "order"], order_command_handler))
 dispatcher.add_handler(CommandHandler(["pa", "pay"], pay_command_handler))
 dispatcher.add_handler(CommandHandler(["ba","balance"], balance_command_handler))
 dispatcher.add_handler(CommandHandler(["bo","book"], book_command_handler))
+dispatcher.add_error_handler(error)
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
 
