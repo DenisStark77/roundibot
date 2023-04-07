@@ -260,7 +260,7 @@ def send_command_handler(update, context):
     recipient_info = users[0].to_dict()
     
     # Search available paths to pay given tokens
-    paths = st_paths(user_info['public'], asset, amount):
+    paths = st_paths(user_info['public'], asset, amount)
       
     # If no paths available inform users  
     if len(paths) == 0:
