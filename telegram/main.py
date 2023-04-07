@@ -15,7 +15,7 @@ invites = db.collection(u'invites')
 
 # /start command wrapper 
 def start_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
+    """Initialize wallet by creating Stellar account."""
     print('Message from user: ', update.message.from_user.id, update.message.from_user.username, update.message.chat.id)
     # Check if uid exist in Firestore
     uid = f"{update.message.from_user.id}"
@@ -48,8 +48,16 @@ def start_command_handler(update, context):
 
 # /invite command wrapper 
 def invite_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
-    update.message.reply_text("To start use /list command to see available tokens")
+    """Invite other user to participate in Roundibot."""
+    
+    if len(contex.args) != 1:
+        update.message.reply_text("Syntax: /invite <telegram username>")
+    else:
+        ivitee = contex.args[0]
+        invites.document(ivitee.lower()).set({'invited_by': username})
+        update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
+        bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
+    #TODO: Charge user for the inviting others
 
 # /help command wrapper 
 def help_command_handler(update, context):
