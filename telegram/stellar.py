@@ -161,3 +161,56 @@ def st_issue_asset(distributor_keypair, amount, code):
     except Exception as err:
         print(f'st_issue_asset: Asset issue failed:{type(err)}\n{err}')
         return None
+
+    
+# Function to build the list of Assets
+def st_build_path(path):
+    return [Asset(p['asset_code'], p['asset_issuer']) for p in path]
+
+
+# Function to find payments paths
+def st_paths(account_public, asset, amount):
+    try:
+        res = stellar.strict_receive_paths(account_public, asset, amount).call()
+        paths = [{'code': p['source_asset_code'], 'issuer': p['source_asset_issuer'], 'amount': p['source_amount'], 'path': st_build_path(p['path'])} for p in res['_embedded']['records']]
+        return paths
+    except Exception as err:
+        print(f'st_paths: path search failed:{type(err)}\n{err}')
+        return []
+
+
+# Function to create an asset and transfer to distribution account
+# Return: issuing_keypair
+def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_asset, dest_amount, path):
+    try:
+        source_public = source_keypair.public_key
+        source_account = server.load_account(source_public)
+
+        # Second, the issuing account actually sends a payment using the asset.
+        transaction = (
+            TransactionBuilder(
+                source_account=source_account,
+                network_passphrase=stellar_passphrase,
+                base_fee=100,
+            )
+            .append_path_payment_strict_receive_op(
+                destination=target_public, 
+                send_asset=send_asset, 
+                send_max=send_max, 
+                dest_asset=dest_asset, 
+                dest_amount=dest_amount, 
+                path=path,
+            )
+            .set_timeout(100)
+            .build()
+        )
+        transaction.sign(source_keypair)
+        resp = server.submit_transaction(transaction)
+        if resp['successful'] != True:
+            print(f'st_send_strict: Trust line transaction failed:\n{resp}')
+            return None
+        else:
+            return True
+    except Exception as err:
+        print(f'st_send_strict: path payment failed:{type(err)}\n{err}')
+        return None
