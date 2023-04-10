@@ -222,3 +222,39 @@ def st_balance(account_public):
     #print('DEBUG!!!:', account['balances'])
     balances = [{'asset_code': b['asset_code'], 'asset_issuer': b['asset_issuer'], 'balance': float(b['balance'])} for b in account['balances'] if b['asset_type'] not in ['native', 'liquidity_pool_shares']]
     return balances
+
+
+# Function to offer/order an exchange of one asset to another
+def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, buying_amount, offer_id=0):
+    try:
+        source_public = source_keypair.public_key
+        source_account = stellar.load_account(source_public)
+
+        # Second, the issuing account actually sends a payment using the asset.
+        transaction = (
+            TransactionBuilder(
+                source_account=source_account,
+                network_passphrase=stellar_passphrase,
+                base_fee=100,
+            )
+            .append_manage_buy_offer_op(
+                selling=selling_asset, 
+                buying=buying_asset, 
+                amount=buying_amount, 
+                price=Decimal(selling_amount/buying_amount), 
+                offer_id=offer_id,
+            )
+            .set_timeout(100)
+            .build()
+        )
+        transaction.sign(source_keypair)
+        resp = stellar.submit_transaction(transaction)
+        if resp['successful'] != True:
+            print(f'Offer transaction failed:\n{resp}')
+            return None
+        else:
+            return True
+    except Exception as err:
+        print(f'st_buy_offer: offer creation failed:{type(err)}\n{err}')
+        return None
+ 
