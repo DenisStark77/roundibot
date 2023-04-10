@@ -184,7 +184,7 @@ def st_paths(account_public, asset, amount):
 def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_asset, dest_amount, path):
     try:
         source_public = source_keypair.public_key
-        source_account = server.load_account(source_public)
+        source_account = stellar.load_account(source_public)
 
         # Second, the issuing account actually sends a payment using the asset.
         transaction = (
@@ -205,7 +205,7 @@ def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_ass
             .build()
         )
         transaction.sign(source_keypair)
-        resp = server.submit_transaction(transaction)
+        resp = stellar.submit_transaction(transaction)
         if resp['successful'] != True:
             print(f'st_send_strict: Trust line transaction failed:\n{resp}')
             return None
