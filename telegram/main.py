@@ -5,7 +5,7 @@ import functions_framework
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup 
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from stellar_sdk import Keypair, Asset
-from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict
+from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance
 
 
 # Initialize Firestore client
@@ -121,11 +121,10 @@ def issue_command_handler(update, context):
     # Check if user is registered in Firebase
     uid = f"{update.message.from_user.id}"
     user_rec = users.document(uid).get()
-    user_info = user_rec.to_dict()
-    
     if not user_rec.exists:
         update.message.reply_text("You are not registered yet. Please use command /start")
         return
+    user_info = user_rec.to_dict()
 
     #TODO: Check if user has trusted assets and balances if not ask to use other's assets first
     
@@ -189,11 +188,10 @@ def trust_command_handler(update, context):
     asset_code = context.args[0]
 
     user_rec = users.document(uid).get()
-    user_info = user_rec.to_dict()
-    
     if not user_rec.exists:
         update.message.reply_text("You are not registered yet. Please use command /start")
         return
+    user_info = user_rec.to_dict()
 
     # Check if asset code is exist
     asset_rec = assets.document(asset_code).get()
@@ -228,11 +226,10 @@ def send_command_handler(update, context):
     asset_code = context.args[1]
 
     user_rec = users.document(uid).get()
-    user_info = user_rec.to_dict()
-    
     if not user_rec.exists:
         update.message.reply_text("You are not registered yet. Please use command /start")
         return
+    user_info = user_rec.to_dict()
 
     # Check if asset code is exist
     asset_rec = assets.document(asset_code).get()
@@ -297,6 +294,7 @@ def order_command_handler(update, context):
     #TODO: Create the order
     update.message.reply_text("Use /book to see list of your orders")
 
+    
 # /pay command wrapper 
 def pay_command_handler(update, context):
     """Sends explanation on how to use the bot."""
@@ -307,16 +305,34 @@ def pay_command_handler(update, context):
 
     update.message.reply_text("Use /order <amount> <asset> <amount> <selling asset>") 
 
+    
 # /balance command wrapper 
 def balance_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
+    """Sends balances of the user."""
     #TODO: Show balances of the assount
     #TODO: If user has own asset check the paths to each asset from the key asset and show the prices to order
     #TODO: If user do not have trusted assets offer to use /list command to add some assets
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
     
-    update.message.reply_text("Use /book command to see order book for all your assets")
+    # Check if user is registered in Firebase
+    uid = f"{update.message.from_user.id}"
+    username = update.message.from_user.username.lower()
 
+    user_rec = users.document(uid).get()
+    if not user_rec.exists:
+        update.message.reply_text("You are not registered yet. Please use command /start")
+        return
+    user_info = user_rec.to_dict()
+    
+    balances = st_balance(user_info['public'])
+    
+    if len(balances) == 0:
+        update.message.reply_text("You do not have any assets. Please use /list command to see available assets and then /trust command to add it to your wallet.")
+    else:
+        balance_string = '\n'.join([b['balance'] + ' ' b['asset_code'] for b in balances])
+        update.message.reply_text("You wallet balance:\n" + balance_string)
+
+    
 # /book command wrapper 
 def book_command_handler(update, context):
     """Sends explanation on how to use the bot."""
