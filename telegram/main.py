@@ -314,6 +314,7 @@ def button_callback_handler(update, context):
     print('DEBUG!!! UPDATE - \n', update)                          
 
     uid = f"{query.from_user.id}"
+    chat_id = query.from_user.id # TODO: Sort out UID CHAT_ID
     username = query.from_user.username.lower()
 
     # CallbackQueries need to be answered, even if no notification to the user is needed
@@ -322,7 +323,7 @@ def button_callback_handler(update, context):
 
     trade_rec = trades.document(query.data).get()
     if not trade_rec.exists:
-        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"User @{username} failed to commit trade {query.data}")
         return
     trade_info = trade_rec.to_dict()
@@ -331,19 +332,19 @@ def button_callback_handler(update, context):
     # {'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']}
     
     if trade_info['payer_id'] != uid:
-        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"Mismatch of uid for @{username} trade {query.data}")
         
     user_rec = users.document(uid).get()
     if not user_rec.exists:
-        update.message.reply_text("You are not registered yet. Please use command /start")
+        bot.send_message(chat_id, "You are not registered yet. Please use command /start")
         return
     user_info = user_rec.to_dict()
     
     # Retrieve assets
     asset_rec = assets.document(trade_info['send_asset']).get()
     if not asset_rec.exists:
-        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"Missing sending asset for @{username} trade {query.data}")
         return        
     asset_info = asset_rec.to_dict()
@@ -351,7 +352,7 @@ def button_callback_handler(update, context):
     
     asset_rec = assets.document(trade_info['dest_asset']).get()
     if not asset_rec.exists:
-        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"Missing destination asset for @{username} trade {query.data}")
         return        
     asset_info = asset_rec.to_dict()
@@ -361,10 +362,10 @@ def button_callback_handler(update, context):
 
     res = st_send_strict(user_info['secret'], trade_info['payee'], sending_asset, trade_info['send_amount'] * 0.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
     if res:
-        update.message.reply_text(f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_username']}")
+        bot.send_message(chat_id, f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_username']}")
         bot.send_message(int(trade_info['payee_chat_id']), f"You've received {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} from @{username}")
     else:
-        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_username']}")
 
     
