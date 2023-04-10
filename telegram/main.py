@@ -297,6 +297,7 @@ def send_command_handler(update, context):
             trade_ref = trades.document()
             p['id'] = trades_ref.id
             trade_ref.set({'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'payee_chat_id': payee_info['chat_id'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']})
+            print('DEBUG!!! path before:', p['path'])
         
         # Send a menu with choice how to pay
         keyboard = [[InlineKeyboardButton(f"{p['amount']:.2f} {p['code']}", callback_data=p['id'])] for p in paths]
@@ -355,7 +356,9 @@ def button_callback_handler(update, context):
         return        
     asset_info = asset_rec.to_dict()
     destination_asset = Asset(trade_info['dest_asset'], asset_info['public'])
-        
+
+    print('DEBUG!!! path after:', trade_info['path'])
+
     res = st_send_strict(user_info['secret'], trade_info['payee'], sending_asset, trade_info['send_amount'] * 0.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
     if res:
         update.message.reply_text(f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_username']}")
