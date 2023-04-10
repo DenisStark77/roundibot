@@ -240,7 +240,7 @@ def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, bu
             .append_manage_buy_offer_op(
                 selling=selling_asset, 
                 buying=buying_asset, 
-                amount=buying_amount, 
+                amount=Decimal(buying_amount), 
                 price=Decimal(selling_amount/buying_amount), 
                 offer_id=offer_id,
             )
