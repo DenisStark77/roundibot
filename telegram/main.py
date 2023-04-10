@@ -293,7 +293,7 @@ def send_command_handler(update, context):
             return
 
         # If more than 1 path send a menu with choice how to pay
-        keyboard = [[InlineKeyboardButton(f"{p['code']} ({p['amount']})", callback_data="%d" % i)] for i, p in enumerate(paths)]
+        keyboard = [[InlineKeyboardButton(f"{p['amount']:.2f} {p['code']}", callback_data="%d" % i)] for i, p in enumerate(paths)]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text(f"Please confirm your asset and amount to pay {amount:.2f} to @{payee_username}", reply_markup=reply_markup)        
 
