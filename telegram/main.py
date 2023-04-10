@@ -265,8 +265,13 @@ def send_command_handler(update, context):
     payee_balances = {b['asset_code']: b['balance'] for b in st_balance(payee_info['public'])}
     payer_keypair = Keypair.from_secret(user_info['secret'])
     
+    # Check if user can assept the asset
+    if asset_code not in payee_balances:
+        update.message.reply_text(f"User @{payee_username} does not accept {asset_code}. Use command /balance @{payee_username} to see his/her trusted assets.")
+        return
+    
     # Pay directly if both sides has given asset/trust line
-    if asset_code in payee_balances and asset_code in payer_balances and payer_balances[asset_code] > amount:
+    if asset_code in payer_balances and payer_balances[asset_code] > amount:
         res = st_send(payer_keypair, payee_info['public'], asset_code, asset_info['public'], amount)
         if res:
             update.message.reply_text(f"{amount:.2f} {asset_code} transferred to @{payee_username}")
@@ -276,7 +281,10 @@ def send_command_handler(update, context):
             bot.send_message(admin_chat_id, f"User @{username} failed to send {amount:.2f} {asset_code} to @{payee_username}")
     else:
         # Search available paths to pay given tokens
+        print('DEBUG!!!: direct payment is not possible looking for the paths')
         paths = st_paths(user_info['public'], asset, amount)
+        
+        print('DEBUG!!!: paths', paths)
 
         # If no paths available inform users  
         if len(paths) == 0:
@@ -386,6 +394,8 @@ def balance_command_handler(update, context):
     #TODO: If user has own asset check the paths to each asset from the key asset and show the prices to order
     #TODO: If user do not have trusted assets offer to use /list command to add some assets
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
+    
+    # TODO: Show balances of other users
     
     # Check if user is registered in Firebase
     uid = f"{update.message.from_user.id}"
