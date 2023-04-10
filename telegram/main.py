@@ -243,7 +243,9 @@ def send_command_handler(update, context):
     # Check if recepient exist and has a trust line for given asset
     recepient = strip_user(context.args[2])
     recepients_ref = users.where(field_path='username', op_string='==', value=recepient).stream()
+    print('DEBUG!!! recepients:', len(recepients_ref))
     recepients = [d for d in recepients_ref]
+    print('DEBUG!!! recepients:', recepients)
 
     if len(recepients) == 0:
         update.message.reply_text(f"Recepient user @{recepient} does not exist.")
@@ -255,6 +257,7 @@ def send_command_handler(update, context):
         return
 
     recipient_info = recepients[0].to_dict()
+    print('DEBUG!!! recepient info:', recipient_info)
     
     # Search available paths to pay given tokens
     paths = st_paths(user_info['public'], asset, amount)
