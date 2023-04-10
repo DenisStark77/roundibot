@@ -220,5 +220,5 @@ def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_ass
 def st_balance(account_public):
     account = stellar.accounts().account_id(account_public).call()
     #print('DEBUG!!!:', account['balances'])
-    balances = [{'asset_code': b['asset_code'], 'asset_issuer': b['asset_issuer'], 'balance': b['balance']} for b in account['balances'] if b['asset_type'] not in ['native', 'liquidity_pool_shares']]
+    balances = [{'asset_code': b['asset_code'], 'asset_issuer': b['asset_issuer'], 'balance': float(b['balance'])} for b in account['balances'] if b['asset_type'] not in ['native', 'liquidity_pool_shares']]
     return balances
