@@ -196,9 +196,9 @@ def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_ass
             .append_path_payment_strict_receive_op(
                 destination=target_public, 
                 send_asset=send_asset, 
-                send_max=send_max, 
+                send_max=Decimal(send_max), 
                 dest_asset=dest_asset, 
-                dest_amount=dest_amount, 
+                dest_amount=Decimal(dest_amount), 
                 path=path,
             )
             .set_timeout(100)
