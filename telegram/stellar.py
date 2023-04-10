@@ -196,9 +196,9 @@ def st_send_strict(source_keypair, target_public, send_asset, send_max, dest_ass
             .append_path_payment_strict_receive_op(
                 destination=target_public, 
                 send_asset=send_asset, 
-                send_max=Decimal(send_max), 
+                send_max="%.5f" % send_max, 
                 dest_asset=dest_asset, 
-                dest_amount=Decimal(dest_amount), 
+                dest_amount="%.5f" % dest_amount, 
                 path=path,
             )
             .set_timeout(100)
@@ -240,8 +240,8 @@ def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, bu
             .append_manage_buy_offer_op(
                 selling=selling_asset, 
                 buying=buying_asset, 
-                amount=Decimal(buying_amount), 
-                price=Decimal(selling_amount/buying_amount), 
+                amount="%.5f" % buying_amount, 
+                price="%.5f" % (selling_amount/buying_amount), 
                 offer_id=offer_id,
             )
             .set_timeout(100)
