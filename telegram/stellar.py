@@ -258,3 +258,10 @@ def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, bu
         print(f'st_buy_offer: offer creation failed:{type(err)}\n{err}')
         return None
  
+
+# Function to show balances of the account
+def st_book(account_public):
+    res = server.offers().for_account(account_public).call()
+    #print('DEBUG!!!:', account['balances'])
+    offers = [o for o in res['_embedded']['records']]
+    return offers
