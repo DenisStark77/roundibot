@@ -493,8 +493,9 @@ def book_command_handler(update, context):
         update.message.reply_text("You do not have any offers. Please use /offer command to trade assets.")
     else:
         print('DEBUG!!! offers', offers)
-        #balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
-        #update.message.reply_text("You wallet balance:\n" + balance_string)
+        # {'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])}
+        offers_string = '\n'.join(["selling %.2f %s for %.2f %s" % (o['selling_amount'], o['selling'], o['buying_amount'], o['buying']) for o in offers])
+        update.message.reply_text("You offers:\n" + offers_string)
 
         
 # Init the Telegram application
