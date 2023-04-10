@@ -269,11 +269,11 @@ def send_command_handler(update, context):
     if asset_code in payee_balances and asset_code in payer_balances and payer_balances[asset_code] > amount:
         res = st_send(payer_keypair, payee_info['public'], asset_code, asset_info['public'], amount)
         if res:
-            update.message.reply_text(f"{amount} {asset_code} transferred to @{payee_username}")
-            bot.send_message(int(payee_info['chat_id']), f"You've received {amount} {asset_code} from @{username}")
+            update.message.reply_text(f"{amount:.2f} {asset_code} transferred to @{payee_username}")
+            bot.send_message(int(payee_info['chat_id']), f"You've received {amount:.2f} {asset_code} from @{username}")
         else:
             update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
-            bot.send_message(admin_chat_id, f"User @{username} failed to send {amount} {asset_code} to @{payee_username}")
+            bot.send_message(admin_chat_id, f"User @{username} failed to send {amount:.2f} {asset_code} to @{payee_username}")
     else:
         # Search available paths to pay given tokens
         paths = st_paths(user_info['public'], asset, amount)
@@ -287,7 +287,7 @@ def send_command_handler(update, context):
         # If more than 1 path send a menu with choice how to pay
         keyboard = [[InlineKeyboardButton(f"{p['source_asset_code']} ({p['source_amount']})", callback_data="%d" % i)] for i, p in enumerate(paths)]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text(f"Please confirm your asset and amount to pay {amount} to @{payee_username}", reply_markup=reply_markup)        
+        update.message.reply_text(f"Please confirm your asset and amount to pay {amount:.2f} to @{payee_username}", reply_markup=reply_markup)        
 
         #update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to exchange tokens to another token")
 
