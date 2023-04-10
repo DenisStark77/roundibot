@@ -489,7 +489,7 @@ def book_command_handler(update, context):
     
     offers = st_book(user_info['public'])
     
-    if len(balances) == 0:
+    if len(offers) == 0:
         update.message.reply_text("You do not have any offers. Please use /offer command to trade assets.")
     else:
         print('DEBUG!!! offers', offers)
