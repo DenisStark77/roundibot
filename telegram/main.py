@@ -243,7 +243,7 @@ def send_command_handler(update, context):
     # Check if recepient exist and has a trust line for given asset
     payee_username = strip_user(context.args[2])
     print('DEBUG!!! searching users for:', payee_username)
-    payees_ref = users.where(field_path='username', op_string='==', value=payee).stream()
+    payees_ref = users.where(field_path='username', op_string='==', value=payee_username).stream()
     payees = [d for d in payees_ref]
     print('DEBUG!!! recepients:', len(payees))
     print('DEBUG!!! recepients:', payees)
@@ -287,7 +287,7 @@ def send_command_handler(update, context):
         # If more than 1 path send a menu with choice how to pay
         keyboard = [[InlineKeyboardButton(f"{p['source_asset_code']} ({p['source_amount']})", callback_data="%d" % i)] for i, p in enumerate(paths)]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text(f"Please confirm your asset and amount to pay {amount} to @{recepient}", reply_markup=reply_markup)        
+        update.message.reply_text(f"Please confirm your asset and amount to pay {amount} to @{payee_username}", reply_markup=reply_markup)        
 
         #update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to exchange tokens to another token")
 
