@@ -241,40 +241,55 @@ def send_command_handler(update, context):
     asset = Asset(asset_code, asset_info['public'])
 
     # Check if recepient exist and has a trust line for given asset
-    recepient = strip_user(context.args[2])
-    print('DEBUG!!! searching users for:', recepient)
-    recepients_ref = users.where(field_path='username', op_string='==', value=recepient).stream()
-    recepients = [d for d in recepients_ref]
-    print('DEBUG!!! recepients:', len(recepients))
-    print('DEBUG!!! recepients:', recepients)
+    payee_username = strip_user(context.args[2])
+    print('DEBUG!!! searching users for:', payee_username)
+    payees_ref = users.where(field_path='username', op_string='==', value=payee).stream()
+    payees = [d for d in payees_ref]
+    print('DEBUG!!! recepients:', len(payees))
+    print('DEBUG!!! recepients:', payees)
 
-    if len(recepients) == 0:
-        update.message.reply_text(f"Recepient user @{recepient} does not exist.")
-        print(f"send_command_handler: Recepient user @{recepient} does not exist.")
+    if len(payees) == 0:
+        update.message.reply_text(f"Recepient user @{payee_username} does not exist.")
+        print(f"send_command_handler: Recepient user @{payee_username} does not exist.")
         return
-    elif len(recepients) > 1:
-        update.message.reply_text(f"Duplicate username @{recepient}. Transfer could not be made.")
-        print(f"send_command_handler: Duplicate username @{recepient}. Transfer could not be made.")
+    elif len(payees) > 1:
+        update.message.reply_text(f"Duplicate username @{payee_username}. Transfer could not be made.")
+        print(f"send_command_handler: Duplicate username @{payee_username}. Transfer could not be made.")
         return
 
-    recipient_info = recepients[0].to_dict()
-    print('DEBUG!!! recepient info:', recipient_info)
+    payee_info = payees[0].to_dict()
+    print('DEBUG!!! recepient info:', payee_info)
+
+    # Get balances for payer and payee
+    payer_balances = {asset_code: b['balance'] for b in st_balance(user_info['public'])}
+    payee_balances = {asset_code: b['balance'] for b in st_balance(payee_info['public'])}
+    payer_keypair = Keypair.from_secret(user_info['secret'])
     
-    # Search available paths to pay given tokens
-    paths = st_paths(user_info['public'], asset, amount)
-      
-    # If no paths available inform users  
-    if len(paths) == 0:
-        update.message.reply_text(f"No conversion path available to asset {asset_code}.") 
-        # TODO: Analize why no paths: zero balance of accounts, no demand for own tokens
-        return
+    # Pay directly if both sides has given asset/trust line
+    if asset_code in payee_balances and asset_code in payer_balances and payer_balances[asset_code] > amount:
+        res = st_send(payer_keypair, payee_info['public'], asset_code, asset_info['public'], amount)
+        if res:
+            update.message.reply_text(f"{amount} {asset_code} transferred to @{payee_username}")
+            bot.send_message(int(payee_info['chat_id']), f"You've received {amount} {asset_code} from @{username}")
+        else:
+            update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"User @{username} failed to send {amount} {asset_code} to @{payee_username}")
+    else:
+        # Search available paths to pay given tokens
+        paths = st_paths(user_info['public'], asset, amount)
 
-    # If more than 1 path send a menu with choice how to pay
-    keyboard = [[InlineKeyboardButton(f"{p['source_asset_code']} ({p['source_amount']})", callback_data="%d" % i)] for i, p in enumerate(paths)]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(f"Please confirm your asset and amount to pay {amount} to @{recepient}", reply_markup=reply_markup)        
-    
-    #update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to exchange tokens to another token")
+        # If no paths available inform users  
+        if len(paths) == 0:
+            update.message.reply_text(f"No conversion path available to asset {asset_code}.") 
+            # TODO: Analize why no paths: zero balance of accounts, no demand for own tokens
+            return
+
+        # If more than 1 path send a menu with choice how to pay
+        keyboard = [[InlineKeyboardButton(f"{p['source_asset_code']} ({p['source_amount']})", callback_data="%d" % i)] for i, p in enumerate(paths)]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(f"Please confirm your asset and amount to pay {amount} to @{recepient}", reply_markup=reply_markup)        
+
+        #update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to exchange tokens to another token")
 
 
 # Parse inline callbacks for buttons
