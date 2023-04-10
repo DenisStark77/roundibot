@@ -295,7 +295,7 @@ def send_command_handler(update, context):
         # Create trade records in Firestore to keep context
         for p in paths:
             trade_ref = trades.document()
-            p['id'] = trades_ref.id
+            p['id'] = trade_ref.id
             trade_ref.set({'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'payee_chat_id': payee_info['chat_id'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']})
             print('DEBUG!!! path before:', p['path'])
         
