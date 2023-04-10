@@ -360,13 +360,13 @@ def button_callback_handler(update, context):
 
     print('DEBUG!!! path after:', trade_info['path'])
 
-    res = st_send_strict(user_info['secret'], trade_info['payee'], sending_asset, trade_info['send_amount'] * 0.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
+    res = st_send_strict(Keypair.from_secret(user_info['secret']), trade_info['payee'], sending_asset, trade_info['send_amount'] * 0.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
     if res:
-        bot.send_message(chat_id, f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_username']}")
+        bot.send_message(chat_id, f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_user']}")
         bot.send_message(int(trade_info['payee_chat_id']), f"You've received {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} from @{username}")
     else:
         bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_username']}")
+        bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_user']}")
 
     
 # /offer command wrapper 
