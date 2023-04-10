@@ -329,7 +329,7 @@ def balance_command_handler(update, context):
     if len(balances) == 0:
         update.message.reply_text("You do not have any assets. Please use /list command to see available assets and then /trust command to add it to your wallet.")
     else:
-        balance_string = '\n'.join([b['balance'] + ' ' + b['asset_code'] for b in balances])
+        balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
         update.message.reply_text("You wallet balance:\n" + balance_string)
 
     
