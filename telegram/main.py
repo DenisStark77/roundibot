@@ -261,8 +261,8 @@ def send_command_handler(update, context):
     print('DEBUG!!! recepient info:', payee_info)
 
     # Get balances for payer and payee
-    payer_balances = {asset_code: b['balance'] for b in st_balance(user_info['public'])}
-    payee_balances = {asset_code: b['balance'] for b in st_balance(payee_info['public'])}
+    payer_balances = {b['asset_code']: b['balance'] for b in st_balance(user_info['public'])}
+    payee_balances = {b['asset_code']: b['balance'] for b in st_balance(payee_info['public'])}
     payer_keypair = Keypair.from_secret(user_info['secret'])
     
     # Pay directly if both sides has given asset/trust line
@@ -307,11 +307,65 @@ def button_callback_handler(update, context):
     # Send given number of the tokens to a specified user via path payment
     
     
-# /order command wrapper 
-def order_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
-    #TODO: Create the order
-    update.message.reply_text("Use /book to see list of your orders")
+# /offer command wrapper 
+def offer_command_handler(update, context):
+    """Create an offer to exchange assets."""
+
+    # Check a sintax
+    if len(context.args) != 5 or not isfloat(context.args[0]) or not isfloat(context.args[3]) or context.args[2] != 'for':
+        update.message.reply_text("Syntax: /offer <amount> <asset to sell> for <amount> <asset to buy>")
+        return
+    
+    # Check if user is registered in Firebase
+    uid = f"{update.message.from_user.id}"
+    username = update.message.from_user.username.lower()
+    selling_amount = float(context.args[0])
+    selling_asset_code = context.args[1]
+    buying_amount = float(context.args[3])
+    buying_asset_code = context.args[4]
+
+    user_rec = users.document(uid).get()
+    if not user_rec.exists:
+        update.message.reply_text("You are not registered yet. Please use command /start")
+        return
+    user_info = user_rec.to_dict()
+
+    # Check if asset codes are exist
+    asset_rec = assets.document(selling_asset_code).get()
+    if not asset_rec.exists:
+        update.message.reply_text(f"Asset {selling_asset_code} not registered. Please check the list of available assets with the /list command.")
+        return        
+    asset_info = asset_rec.to_dict()
+    selling_asset = Asset(selling_asset_code, asset_info['public'])
+    
+    asset_rec = assets.document(buying_asset_code).get()
+    if not asset_rec.exists:
+        update.message.reply_text(f"Asset {buying_asset_code} not registered. Please check the list of available assets with the /list command.")
+        return        
+    asset_info = asset_rec.to_dict()
+    buying_asset = Asset(buying_asset_code, asset_info['public'])
+    
+    # Check that user has enough balance and buying asset is trusted
+    balances = {b['asset_code']: b['balance'] for b in st_balance(user_info['public'])}
+    if buying_asset_code not in balances:
+        update.message.reply_text(f"Asset to buy is not yet trusted. Use command /trust {buying_asset_code}")
+        return
+    
+    if selling_asset_code not in balances:
+        update.message.reply_text(f"You do not have asset {selling_asset_code} to sell. Use command /balance to see available assets in your wallet.")
+        return
+        
+    if selling_amount > balances[selling_asset_code]:
+        update.message.reply_text(f"You balance for {selling_asset_code} is {balances[selling_asset_code]:.2f} below the offered amount {selling_amount:.2f}. Offer lesser amount.")
+        return
+    
+    # Create an offer    
+    res = st_buy_offer(Keypair.from_secret(user_info['secret']), selling_asset, buying_asset, selling_amount, buying_amount)
+    if res:
+        update.message.reply_text(f"Offer created. Use command /book to see all active offers")
+    else:
+        update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
+        bot.send_message(admin_chat_id, f"User @{username} failed to create an offer of {selling_amount:.2f} {selling_asset_code} for {buying_amount:.2f} {buying_asset_code}")
 
     
 # /pay command wrapper 
@@ -386,7 +440,7 @@ dispatcher.add_handler(CommandHandler(["is", "issue"], issue_command_handler))
 dispatcher.add_handler(CommandHandler(["li", "list"], list_command_handler))
 dispatcher.add_handler(CommandHandler(["tr", "trust"], trust_command_handler))
 dispatcher.add_handler(CommandHandler(["se", "send"], send_command_handler))
-dispatcher.add_handler(CommandHandler(["or", "order"], order_command_handler))
+dispatcher.add_handler(CommandHandler(["of", "offer"], order_command_handler))
 dispatcher.add_handler(CommandHandler(["pa", "pay"], pay_command_handler))
 dispatcher.add_handler(CommandHandler(["ba","balance"], balance_command_handler))
 dispatcher.add_handler(CommandHandler(["bo","book"], book_command_handler))
