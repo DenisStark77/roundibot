@@ -472,13 +472,31 @@ def balance_command_handler(update, context):
     
 # /book command wrapper 
 def book_command_handler(update, context):
-    """Sends explanation on how to use the bot."""
+    """Sends list of open offers."""
     #TODO: Show all orders in order book for given user
     #TODO: If no trust for asset offer to use /trust command
     #TODO: If all balances is zero suggest to earn tokens (not possible to create orders w/o balance)
     
-    update.message.reply_text("Use /order <amount> <buying asset> <amount> <selling assed> to order other tokens")
+    # Check if user is registered in Firebase
+    uid = f"{update.message.from_user.id}"
+    username = update.message.from_user.username.lower()
 
+    user_rec = users.document(uid).get()
+    if not user_rec.exists:
+        update.message.reply_text("You are not registered yet. Please use command /start")
+        return
+    user_info = user_rec.to_dict()
+    
+    offers = st_book(user_info['public'])
+    
+    if len(balances) == 0:
+        update.message.reply_text("You do not have any offers. Please use /offer command to trade assets.")
+    else:
+        print('DEBUG!!! offers', offers)
+        #balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
+        #update.message.reply_text("You wallet balance:\n" + balance_string)
+
+        
 # Init the Telegram application
 admin_chat_id = 419686805 # TODO: replace with settings from Firestore
 if os.getenv('BOT_ENV') == 'TEST':
