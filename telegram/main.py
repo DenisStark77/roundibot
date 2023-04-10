@@ -311,7 +311,7 @@ def send_command_handler(update, context):
 def button_callback_handler(update, context):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
-    print('DEBUG!!!', query)                          
+    print('DEBUG!!! UPDATE - \n', update)                          
 
     uid = f"{query.from_user.id}"
     username = query.from_user.username.lower()
@@ -330,7 +330,7 @@ def button_callback_handler(update, context):
     # Send given number of the tokens to a specified user via path payment
     # {'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']}
     
-    if trade_info['uid'] != uid:
+    if trade_info['payer_id'] != uid:
         update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
         bot.send_message(admin_chat_id, f"Mismatch of uid for @{username} trade {query.data}")
         
