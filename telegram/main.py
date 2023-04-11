@@ -5,7 +5,7 @@ import functions_framework
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup 
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from stellar_sdk import Keypair, Asset
-from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance, st_buy_offer, st_book
+from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance, st_buy_offer, st_book, st_cancel_offer
 
 
 # Initialize Firestore client
@@ -313,6 +313,11 @@ def button_callback_handler(update, context):
     query = update.callback_query
     print('DEBUG!!! UPDATE - \n', update)                          
 
+    # Split query data
+    data = query.data.split(':')
+    command = data[0]
+    args = data[1:]
+    
     uid = f"{query.from_user.id}"
     chat_id = query.from_user.id # TODO: Sort out UID CHAT_ID
     username = query.from_user.username.lower()
@@ -321,53 +326,61 @@ def button_callback_handler(update, context):
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
 
-    trade_rec = trades.document(query.data).get()
-    if not trade_rec.exists:
-        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"User @{username} failed to commit trade {query.data}")
-        return
-    trade_info = trade_rec.to_dict()
-    
-    # Send given number of the tokens to a specified user via path payment
-    # {'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']}
-    
-    if trade_info['payer_id'] != uid:
-        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"Mismatch of uid for @{username} trade {query.data}")
-        
     user_rec = users.document(uid).get()
     if not user_rec.exists:
         bot.send_message(chat_id, "You are not registered yet. Please use command /start")
         return
     user_info = user_rec.to_dict()
-    
-    # Retrieve assets
-    asset_rec = assets.document(trade_info['send_asset']).get()
-    if not asset_rec.exists:
-        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"Missing sending asset for @{username} trade {query.data}")
-        return        
-    asset_info = asset_rec.to_dict()
-    sending_asset = Asset(trade_info['send_asset'], asset_info['public'])
-    
-    asset_rec = assets.document(trade_info['dest_asset']).get()
-    if not asset_rec.exists:
-        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"Missing destination asset for @{username} trade {query.data}")
-        return        
-    asset_info = asset_rec.to_dict()
-    destination_asset = Asset(trade_info['dest_asset'], asset_info['public'])
 
-    print('DEBUG!!! path after:', trade_info['path'])
+    if command == 'send':
+        trade_rec = trades.document(args[0]).get()
+        if not trade_rec.exists:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"User @{username} failed to commit trade {query.data}")
+            return
+        trade_info = trade_rec.to_dict()
 
-    res = st_send_strict(Keypair.from_secret(user_info['secret']), trade_info['payee'], sending_asset, trade_info['send_amount'] * 1.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
-    if res:
-        bot.send_message(chat_id, f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_user']}")
-        bot.send_message(int(trade_info['payee_chat_id']), f"You've received {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} from @{username}")
-    else:
-        bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
-        bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_user']}")
+        # Send given number of the tokens to a specified user via path payment
+        # {'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']}
 
+        if trade_info['payer_id'] != uid:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"Mismatch of uid for @{username} trade {query.data}")
+
+        # Retrieve assets
+        asset_rec = assets.document(trade_info['send_asset']).get()
+        if not asset_rec.exists:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"Missing sending asset for @{username} trade {query.data}")
+            return        
+        asset_info = asset_rec.to_dict()
+        sending_asset = Asset(trade_info['send_asset'], asset_info['public'])
+
+        asset_rec = assets.document(trade_info['dest_asset']).get()
+        if not asset_rec.exists:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"Missing destination asset for @{username} trade {query.data}")
+            return        
+        asset_info = asset_rec.to_dict()
+        destination_asset = Asset(trade_info['dest_asset'], asset_info['public'])
+
+        print('DEBUG!!! path after:', trade_info['path'])
+
+        res = st_send_strict(Keypair.from_secret(user_info['secret']), trade_info['payee'], sending_asset, trade_info['send_amount'] * 1.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
+        if res:
+            bot.send_message(chat_id, f"{trade_info['dest_amount']:.2f} {trade_info['dest_asset']} transferred to @{trade_info['payee_user']}")
+            bot.send_message(int(trade_info['payee_chat_id']), f"You've received {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} from @{username}")
+        else:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_user']}")
+    elif command == 'drop_offer':
+        res = st_cancel_offer(Keypair.from_secret(user_info['secret']), args[0])
+        if res:
+            bot.send_message(chat_id, f"Order {args[0]} canceled")
+        else:
+            bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
+            bot.send_message(admin_chat_id, f"User @{username} failed to cancel offer {args[0]}")
+        
     
 # /offer command wrapper 
 def offer_command_handler(update, context):
@@ -498,7 +511,7 @@ def book_command_handler(update, context):
         
         for o in offers:
             offers_string = "selling %.2f %s for %.2f %s" % (o['selling_amount'], o['selling'], o['buying_amount'], o['buying'])
-            keyboard = [[InlineKeyboardButton("Cancel", callback_data=o['id'])]]
+            keyboard = [[InlineKeyboardButton("Cancel", callback_data=f"drop_order:{o['id']}")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             update.message.reply_text(offers_string, reply_markup=reply_markup)      
 
