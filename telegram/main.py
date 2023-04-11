@@ -494,8 +494,13 @@ def book_command_handler(update, context):
     else:
         print('DEBUG!!! offers', offers)
         # {'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])}
-        offers_string = '\n'.join(["selling %.2f %s for %.2f %s" % (o['selling_amount'], o['selling'], o['buying_amount'], o['buying']) for o in offers])
-        update.message.reply_text("You offers:\n" + offers_string)
+        update.message.reply_text("You current offers:\n")
+        
+        for o in offers:
+            offers_string = "selling %.2f %s for %.2f %s" % (o['selling_amount'], o['selling'], o['buying_amount'], o['buying'])
+            keyboard = [[InlineKeyboardButton("Cancel", callback_data=o['id'])]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            update.message.reply_text(offers_string, reply_markup=reply_markup)      
 
         
 # Init the Telegram application
