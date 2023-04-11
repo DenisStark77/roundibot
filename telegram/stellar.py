@@ -259,6 +259,38 @@ def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, bu
         return None
  
 
+# Function to offer/order an exchange of one asset to another
+def st_cancel_offer(source_keypair, offer_id):
+    try:
+        source_public = source_keypair.public_key
+        source_account = stellar.load_account(source_public)
+
+        # Second, the issuing account actually sends a payment using the asset.
+        transaction = (
+            TransactionBuilder(
+                source_account=source_account,
+                network_passphrase=stellar_passphrase,
+                base_fee=100,
+            )
+            .append_manage_buy_offer_op(
+                amount="0", 
+                offer_id=offer_id,
+            )
+            .set_timeout(100)
+            .build()
+        )
+        transaction.sign(source_keypair)
+        resp = stellar.submit_transaction(transaction)
+        if resp['successful'] != True:
+            print(f'Offer transaction failed:\n{resp}')
+            return None
+        else:
+            return True
+    except Exception as err:
+        print(f'st_cancel_offer: offer cancelation failed:{type(err)}\n{err}')
+        return None
+ 
+
 # Function to show balances of the account
 def st_book(account_public):
     try:
