@@ -268,8 +268,6 @@ def st_cancel_offer(source_keypair, offer_id):
         offer = stellar.offers().offer(offer_id).call()
         #print('DEBUG!! offer res', offer)
         #offers = [{'id': o['id'], 'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])} for o in res['_embedded']['records']]
-        selling_asset = Asset(offer['selling']['asset_code'], offer['selling']['asset_issuer'])
-        buying_asset = Asset(offer['buying']['asset_code'], offer['buying']['asset_issuer'])
 
         # Second, the issuing account actually sends a payment using the asset.
         transaction = (
@@ -279,8 +277,9 @@ def st_cancel_offer(source_keypair, offer_id):
                 base_fee=100,
             )
             .append_manage_buy_offer_op(
-                selling=selling_asset, 
-                buying=buying_asset, 
+                selling=Asset(offer['selling']['asset_code'], offer['selling']['asset_issuer']), 
+                buying=Asset(offer['buying']['asset_code'], offer['buying']['asset_issuer']), 
+                price=offer['price'],
                 amount="0", 
                 offer_id=offer_id,
             )
