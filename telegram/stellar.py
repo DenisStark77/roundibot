@@ -261,7 +261,11 @@ def st_buy_offer(source_keypair, selling_asset, buying_asset, selling_amount, bu
 
 # Function to show balances of the account
 def st_book(account_public):
-    res = stellar.offers().for_account(account_public).call()
-    #print('DEBUG!!!:', account['balances'])
-    offers = [{'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])} for o in res['_embedded']['records']]
-    return offers
+    try:
+        res = stellar.offers().for_account(account_public).call()
+        print('DEBUG!!!: offers', res['_embedded']['records'])
+        offers = [{'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])} for o in res['_embedded']['records']]
+        return offers
+    except Exception as err:
+        print(f'st_book: offer request failed:{type(err)}\n{err}')
+        return None
