@@ -373,7 +373,7 @@ def button_callback_handler(update, context):
         else:
             bot.send_message(chat_id, f"Something went wrong. Please try again later. Admins are informed!")
             bot.send_message(admin_chat_id, f"User @{username} failed to send via path {trade_info['dest_amount']:.2f} {trade_info['dest_asset']} to @{trade_info['payee_user']}")
-    elif command == 'drop_offer':
+    elif command == 'cancel':
         res = st_cancel_offer(Keypair.from_secret(user_info['secret']), args[0])
         if res:
             bot.send_message(chat_id, f"Order {args[0]} canceled")
@@ -511,7 +511,7 @@ def book_command_handler(update, context):
         
         for o in offers:
             offers_string = "selling %.2f %s for %.2f %s" % (o['selling_amount'], o['selling'], o['buying_amount'], o['buying'])
-            keyboard = [[InlineKeyboardButton("Cancel", callback_data=f"drop_order:{o['id']}")]]
+            keyboard = [[InlineKeyboardButton("Cancel", callback_data=f"cancel:{o['id']}")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             update.message.reply_text(offers_string, reply_markup=reply_markup)      
 
