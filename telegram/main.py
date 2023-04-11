@@ -300,7 +300,7 @@ def send_command_handler(update, context):
             print('DEBUG!!! path before:', p['path'])
         
         # Send a menu with choice how to pay
-        keyboard = [[InlineKeyboardButton(f"{p['amount']:.2f} {p['code']}", callback_data=p['id'])] for p in paths]
+        keyboard = [[InlineKeyboardButton(f"{p['amount']:.2f} {p['code']}", callback_data=f"send:{p['id']}")] for p in paths]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text(f"Please confirm your asset and amount to pay {amount:.2f} to @{payee_username}", reply_markup=reply_markup)        
 
