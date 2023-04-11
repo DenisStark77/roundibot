@@ -281,7 +281,7 @@ def st_cancel_offer(source_keypair, offer_id):
                 buying=Asset(offer['buying']['asset_code'], offer['buying']['asset_issuer']), 
                 price=offer['price'],
                 amount="0", 
-                offer_id=offer_id,
+                offer_id=int(offer_id),
             )
             .set_timeout(100)
             .build()
