@@ -266,7 +266,7 @@ def st_cancel_offer(source_keypair, offer_id):
         source_account = stellar.load_account(source_public)
 
         offer = stellar.offers().offer(offer_id).call()
-        print('DEBUG!! offer res', res)
+        #print('DEBUG!! offer res', offer)
         #offers = [{'id': o['id'], 'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])} for o in res['_embedded']['records']]
         selling_asset = Asset(offer['selling']['asset_code'], offer['selling']['asset_issuer'])
         buying_asset = Asset(offer['buying']['asset_code'], offer['buying']['asset_issuer'])
