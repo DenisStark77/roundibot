@@ -265,14 +265,11 @@ def st_cancel_offer(source_keypair, offer_id):
         source_public = source_keypair.public_key
         source_account = stellar.load_account(source_public)
 
-        res = stellar.offers().offer(offer_id).call()
+        offer = stellar.offers().offer(offer_id).call()
         print('DEBUG!! offer res', res)
-        print('DEBUG!!!: offers', res['_embedded']['records'])
         #offers = [{'id': o['id'], 'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])} for o in res['_embedded']['records']]
-        offer = res['_embedded']['records'][0]
-        print('DEBUG!! offer', offer)
-        selling_asset = Asset(offer['selling']['asset_code'], offer['selling']['issuer'])
-        buying_asset = Asset(offer['buying']['asset_code'], offer['buying']['issuer'])
+        selling_asset = Asset(offer['selling']['asset_code'], offer['selling']['asset_issuer'])
+        buying_asset = Asset(offer['buying']['asset_code'], offer['buying']['asset_issuer'])
 
         # Second, the issuing account actually sends a payment using the asset.
         transaction = (
