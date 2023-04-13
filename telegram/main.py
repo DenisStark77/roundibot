@@ -98,7 +98,7 @@ def invite_command_handler(update, context):
     ivitee = strip_user(context.args[0])
         
     invites.document(ivitee).set({'invited_by': username})
-    update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
+    update.message.reply_text(f"User @{ivitee} invited. He/she can start using the bot.")
     bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
     #TODO: Charge user for the inviting others
 
