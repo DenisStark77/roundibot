@@ -15,6 +15,12 @@ bot_keypair = Keypair.from_secret(stellar_seed)
 bot_public = bot_keypair.public_key
 
 
+# Function to show native balance of the account
+def st_xlm(account_public):
+    account = server.accounts().account_id(account_public).call()
+    return [float(b['balance']) for b in account['balances'] if b['asset_type'] == 'native'][0]
+
+
 # Function to create an account
 def st_create_account(funding_keypair = None, starting_balance = 5):
     if funding_keypair is None:
@@ -139,6 +145,9 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
 # Return: issuing_keypair
 def st_issue_asset(distributor_keypair, amount, code):
     try:
+        distributor_public = distributor_keypair.public_key
+        print('DEBUG!!! balance before', st_xlm(distributor_public))
+        
         # Create an issuing account
         issuing_keypair = st_create_account(starting_balance=2) # TODO: Fund issuing contract from the current user
         
@@ -147,12 +156,15 @@ def st_issue_asset(distributor_keypair, amount, code):
             return None
 
         issuing_public = issuing_keypair.public_key
-        distributor_public = distributor_keypair.public_key
         distributor_account = stellar.load_account(distributor_public)
+
+        print('DEBUG!!! balance after account', st_xlm(distributor_public))
 
         # First, the receiving account must trust the asset
         if not st_trust_asset(distributor_keypair, code, issuing_public):
             return None
+
+        print('DEBUG!!! balance after trust', st_xlm(distributor_public))
 
         if not st_send(issuing_keypair, distributor_public, code, issuing_public, amount):
             return None
