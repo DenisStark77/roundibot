@@ -4,6 +4,7 @@ import traceback
 import functions_framework
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatAction
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext.filters import Filters
 from stellar_sdk import Keypair, Asset
 from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance, st_buy_offer, st_book, st_cancel_offer
 
@@ -565,7 +566,7 @@ dispatcher.add_handler(CommandHandler(["pa", "pay"], pay_command_handler))
 dispatcher.add_handler(CommandHandler(["ba","balance"], balance_command_handler))
 dispatcher.add_handler(CommandHandler(["bo","book"], book_command_handler))
 dispatcher.add_handler(CallbackQueryHandler(button_callback_handler))
-dispatcher.add_handler(MessageHandler(filters.all, default_handler))
+dispatcher.add_handler(MessageHandler(Filters.text, default_handler))
 dispatcher.add_error_handler(error)
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
