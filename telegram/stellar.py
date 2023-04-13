@@ -146,7 +146,7 @@ def st_send(source_keypair, target_public, code, issuing_public, amount):
 def st_issue_asset(distributor_keypair, amount, code):
     try:
         distributor_public = distributor_keypair.public_key
-        print('DEBUG!!! balance before', st_xlm(distributor_public))
+        print('DEBUG!!! balance before', st_xlm(distributor_public), st_xlm(bot_public))
         
         # Create an issuing account
         issuing_keypair = st_create_account(starting_balance=2) # TODO: Fund issuing contract from the current user
@@ -158,13 +158,13 @@ def st_issue_asset(distributor_keypair, amount, code):
         issuing_public = issuing_keypair.public_key
         distributor_account = stellar.load_account(distributor_public)
 
-        print('DEBUG!!! balance after account', st_xlm(distributor_public))
+        print('DEBUG!!! balance after account', st_xlm(distributor_public), st_xlm(bot_public))
 
         # First, the receiving account must trust the asset
         if not st_trust_asset(distributor_keypair, code, issuing_public):
             return None
 
-        print('DEBUG!!! balance after trust', st_xlm(distributor_public))
+        print('DEBUG!!! balance after trust', st_xlm(distributor_public), st_xlm(bot_public))
 
         if not st_send(issuing_keypair, distributor_public, code, issuing_public, amount):
             return None
