@@ -11,11 +11,17 @@ from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, 
 # Initialize Firestore client
 from google.cloud import firestore
 db = firestore.Client()
-users = db.collection(u'users')
-invites = db.collection(u'invites')
-assets = db.collection(u'assets')
-trades = db.collection(u'trades')
 
+if os.getenv('BOT_ENV') == 'TEST':
+    suffix = '_test'
+else:
+    suffix = ''
+    
+users = db.collection(u'users'+suffix)
+invites = db.collection(u'invites'+suffix)
+assets = db.collection(u'assets'+suffix)
+trades = db.collection(u'trades'+suffix)
+    
 # Function to check if string is number
 def isfloat(num):
     try:
