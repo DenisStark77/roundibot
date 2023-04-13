@@ -17,7 +17,7 @@ bot_public = bot_keypair.public_key
 
 # Function to show native balance of the account
 def st_xlm(account_public):
-    account = server.accounts().account_id(account_public).call()
+    account = stellar.accounts().account_id(account_public).call()
     return [float(b['balance']) for b in account['balances'] if b['asset_type'] == 'native'][0]
 
 
