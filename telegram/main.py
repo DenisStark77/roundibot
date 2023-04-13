@@ -175,13 +175,15 @@ def issue_command_handler(update, context):
 def list_command_handler(update, context):
     """Send the list of assets available via bot."""
     #TODO: send list of available tokens
-    assets_stream = assets.stream()
+    assets_list = [a.to_dict() for a in assets.stream()]
 
-    for a in assets_stream:
-        asset_info = a.to_dict()
-        update.message.reply_text(f"{a.id} issued by @{asset_info['issued_by']}")
+    for a in assets_list:
+        update.message.reply_text(f"{a['code']} issued by @{a['issued_by']}")
     
-    update.message.reply_text("Use /trust <asset code> or /trust <asset code> <quantity> to trust the token")
+    if len(assets_list) > 0:
+        update.message.reply_text("Use /trust <asset code> to trust the token")
+    else:
+        update.message.reply_text("There are no tokens available")
 
 
 # /trust command wrapper 
