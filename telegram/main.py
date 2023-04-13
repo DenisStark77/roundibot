@@ -565,7 +565,7 @@ dispatcher.add_handler(CommandHandler(["pa", "pay"], pay_command_handler))
 dispatcher.add_handler(CommandHandler(["ba","balance"], balance_command_handler))
 dispatcher.add_handler(CommandHandler(["bo","book"], book_command_handler))
 dispatcher.add_handler(CallbackQueryHandler(button_callback_handler))
-dispatcher.add_handler(MessageHandler(Filters.all, default_handler))
+dispatcher.add_handler(MessageHandler(filters.all, default_handler))
 dispatcher.add_error_handler(error)
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
