@@ -533,6 +533,7 @@ def book_command_handler(update, context):
 # /book command wrapper 
 def default_handler(update, context):
     """Sends default answer."""
+    print('DEBUG!!!: default handler:\n', update)
     update.message.reply_text('Unknown command or request. Please use /help command.')      
 
 
