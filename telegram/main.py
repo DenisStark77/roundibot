@@ -2,7 +2,7 @@ import os
 import json
 import traceback
 import functions_framework
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup 
+from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatAction
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from stellar_sdk import Keypair, Asset
 from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance, st_buy_offer, st_book, st_cancel_offer
@@ -62,6 +62,8 @@ def start_command_handler(update, context):
             # If not ivited advice to look for the sponsor
             update.message.reply_text("It's invite-only community. Please find someone who invetes you!")
         else:
+            bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+            
             # If invited create the Stellar account and update Firestore
             keypair = st_create_account()
             
@@ -146,6 +148,7 @@ def issue_command_handler(update, context):
         # If exist and belong to current user issue extra tokens
         if asset_info['issued_by'] == username:
             issuer_keypair = Keypair.from_secret(asset_info['secret'])
+            bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             res = st_send(issuer_keypair, user_info['public'], asset_code, issuer_keypair.public_key, quantity)
             if res:
                 update.message.reply_text(f"{quantity} of {asset_code} issued and transfered to your account. Use /balance to check it.")
@@ -156,6 +159,7 @@ def issue_command_handler(update, context):
             update.message.reply_text(f"Asset code {asset_code} already in used. Please use another one.")
     else:
         # If not exist create and issue tokens
+        bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         issuer_keypair = st_issue_asset(Keypair.from_secret(user_info['secret']), quantity, asset_code)
         if issuer_keypair is None:
             update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
@@ -208,6 +212,7 @@ def trust_command_handler(update, context):
     asset_info = asset_rec.to_dict()
 
     # Set trust to the asset
+    bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
     res = st_trust_asset(Keypair.from_secret(user_info['secret']), asset_code, asset_info['public'])
     if res:
         update.message.reply_text(f"Trust line added. You can receive {asset_code} tokens. Ask holder to /send {asset_code} @{username}")
