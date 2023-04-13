@@ -248,11 +248,11 @@ def send_command_handler(update, context):
 
     # Check if recepient exist and has a trust line for given asset
     payee_username = strip_user(context.args[2])
-    print('DEBUG!!! searching users for:', payee_username)
+    #print('DEBUG!!! searching users for:', payee_username)
     payees_ref = users.where(field_path='username', op_string='==', value=payee_username).stream()
     payees = [d for d in payees_ref]
-    print('DEBUG!!! recepients:', len(payees))
-    print('DEBUG!!! recepients:', payees)
+    #print('DEBUG!!! recepients:', len(payees))
+    #print('DEBUG!!! recepients:', payees)
 
     if len(payees) == 0:
         update.message.reply_text(f"Recepient user @{payee_username} does not exist.")
@@ -264,7 +264,7 @@ def send_command_handler(update, context):
         return
 
     payee_info = payees[0].to_dict()
-    print('DEBUG!!! recepient info:', payee_info)
+    #print('DEBUG!!! recepient info:', payee_info)
 
     # Get balances for payer and payee
     payer_balances = {b['asset_code']: b['balance'] for b in st_balance(user_info['public'])}
@@ -287,10 +287,10 @@ def send_command_handler(update, context):
             bot.send_message(admin_chat_id, f"User @{username} failed to send {amount:.2f} {asset_code} to @{payee_username}")
     else:
         # Search available paths to pay given tokens
-        print('DEBUG!!!: direct payment is not possible looking for the paths')
+        #print('DEBUG!!!: direct payment is not possible looking for the paths')
         paths = st_paths(user_info['public'], asset, amount)
         
-        print('DEBUG!!!: paths', paths)
+        #print('DEBUG!!!: paths', paths)
 
         # If no paths available inform users  
         if len(paths) == 0:
@@ -303,7 +303,7 @@ def send_command_handler(update, context):
             trade_ref = trades.document()
             p['id'] = trade_ref.id
             trade_ref.set({'payer_id': uid, 'payee': payee_info['public'], 'payee_user': payee_info['username'], 'payee_chat_id': payee_info['chat_id'], 'send_asset': p['code'], 'send_amount': p['amount'], 'dest_asset': asset_code, 'dest_amount': amount, 'path': p['path']})
-            print('DEBUG!!! path before:', p['path'])
+            #print('DEBUG!!! path before:', p['path'])
         
         # Send a menu with choice how to pay
         keyboard = [[InlineKeyboardButton(f"{p['amount']:.2f} {p['code']}", callback_data=f"send:{p['id']}")] for p in paths]
@@ -317,7 +317,7 @@ def send_command_handler(update, context):
 def button_callback_handler(update, context):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
-    print('DEBUG!!! UPDATE - \n', update)                          
+    #print('DEBUG!!! UPDATE - \n', update)                          
 
     # Split query data
     data = query.data.split(':')
@@ -370,7 +370,7 @@ def button_callback_handler(update, context):
         asset_info = asset_rec.to_dict()
         destination_asset = Asset(trade_info['dest_asset'], asset_info['public'])
 
-        print('DEBUG!!! path after:', trade_info['path'])
+        #print('DEBUG!!! path after:', trade_info['path'])
 
         res = st_send_strict(Keypair.from_secret(user_info['secret']), trade_info['payee'], sending_asset, trade_info['send_amount'] * 1.2, destination_asset, trade_info['dest_amount'], trade_info['path'])
         if res:
@@ -511,7 +511,7 @@ def book_command_handler(update, context):
     if len(offers) == 0:
         update.message.reply_text("You do not have any offers. Please use /offer command to trade assets.")
     else:
-        print('DEBUG!!! offers', offers)
+        #print('DEBUG!!! offers', offers)
         # {'seller': o['seller'], 'selling': o['selling']['asset_code'], 'buying': o['buying']['asset_code'], 'selling_amount': float(o['amount']), 'buying_amount': float(o['amount']) * float(o['price'])}
         update.message.reply_text("You current offers:\n")
         
@@ -539,7 +539,7 @@ else:
     dispatcher = Dispatcher(bot, None, use_context=True)
 
 # define command handler
-print('DEBUG!!! Adding handler')
+#print('DEBUG!!! Adding handler')
 dispatcher.add_handler(CommandHandler("start", start_command_handler))
 dispatcher.add_handler(CommandHandler(["in", "invite"], invite_command_handler))
 dispatcher.add_handler(CommandHandler(["he", "help"], help_command_handler))
@@ -570,7 +570,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), bot)
-            print('DEBUG!!! Updating process')
+            #print('DEBUG!!! Updating process')
             dispatcher.process_update(update)
             return ('', 200)
         else:
