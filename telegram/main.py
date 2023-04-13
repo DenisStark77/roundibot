@@ -60,7 +60,7 @@ def start_command_handler(update, context):
         invite = invites.document(username).get()
         if not invite.exists:
             # If not ivited advice to look for the sponsor
-            update.message.reply_text("It's closed community for invite only. Please find a sponsor first!")
+            update.message.reply_text("It's invite-only community. Please find someone who invetes you!")
         else:
             # If invited create the Stellar account and update Firestore
             keypair = st_create_account()
