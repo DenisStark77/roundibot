@@ -479,10 +479,13 @@ def balance_command_handler(update, context):
     print('DEBUG!!! update', update)
     print('DEBUG!!! entities', update.message.entities)
     
-    mention = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
-    if len(mention) > 0 and mention[0].user is not None:
-        print('DEBUG!!! user', mention[0].user)
-
+    entities = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
+    for e in entities:
+        if e.type == 'mention':
+            print('DEBUG!!! username', update.message.parse_entity(e))
+        elif e.type == 'text_mention':
+            print('DEBUG!!! user id', e.user.id)
+            
     # TODO: Show balances of other users
     if len(context.args) > 1:
         update.message.reply_text("Syntax: /balance or /balance @<user name>")
