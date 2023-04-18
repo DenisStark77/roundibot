@@ -4,6 +4,7 @@ import traceback
 import functions_framework
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatAction
 from telegram.ext import Dispatcher, Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext.filters import Filters
 from stellar_sdk import Keypair, Asset
 from stellar import st_create_account, st_issue_asset, st_send, st_trust_asset, st_paths, st_send_strict, st_balance, st_buy_offer, st_book, st_cancel_offer
 
@@ -47,13 +48,20 @@ def error(update, context):
 def start_command_handler(update, context):
     """Initialize wallet by creating Stellar account."""
     print('Message from user: ', update.message.from_user.id, update.message.from_user.username, update.message.chat.id)
-    # Check if uid exist in Firestore
+    
     uid = f"{update.message.from_user.id}"
     chat_id = f"{update.message.chat.id}"
+
+    if update.message.from_user.username is None:
+        print(f'WARNING: user {update.message.from_user.id} does not have a user name')
+        update.message.reply_text("Please setup your telegram username and repeat a /start command.")
+        return
+        
+    # Check if uid exist in Firestore
     user = users.document(uid).get()
     if user.exists:
         # TODO: Send context dependent hint what to do next
-        update.message.reply_text("To start use /list command to see available tokens")
+        update.message.reply_text("To see available tokens use /list command")
     else:
         # If not in Firestore check if user is invited
         username = update.message.from_user.username.lower()
@@ -82,6 +90,13 @@ def start_command_handler(update, context):
 def invite_command_handler(update, context):
     """Invite other user to participate in Roundibot."""
 
+    # Check if invited person has a Telegram username
+    entities = [e for e in update.message.entities if e.type == 'text_mention']
+    for e in entities:
+        update.message.reply_text(f"Could not invite {e.user.first_name + ' ' + e.user.last_name} as he does not have Telegram username. Please ask him to set a Telegram username.")
+        bot.send_message(admin_chat_id, f"WARNING: Invite from @{update.message.from_user.username} for a user without username {e.user.id} {e.user.first_name + ' ' + e.user.last_name}")
+        return
+            
     # Check a syntax
     if len(context.args) != 1:
         update.message.reply_text("Syntax: /invite <telegram username>")
@@ -98,7 +113,7 @@ def invite_command_handler(update, context):
     ivitee = strip_user(context.args[0])
         
     invites.document(ivitee).set({'invited_by': username})
-    update.message.reply_text(f"User @{ivitee} invited. He can start using the bot.")
+    update.message.reply_text(f"User @{ivitee} invited. He/she can start using the bot.")
     bot.send_message(admin_chat_id, f"New user @{ivitee} invited by @{username}")
     #TODO: Charge user for the inviting others
 
@@ -146,7 +161,7 @@ def issue_command_handler(update, context):
         asset_info = asset_rec.to_dict()
 
         # If exist and belong to current user issue extra tokens
-        if asset_info['issued_by'] == username:
+        if asset_info['issued_by'] == uid:
             issuer_keypair = Keypair.from_secret(asset_info['secret'])
             bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             res = st_send(issuer_keypair, user_info['public'], asset_code, issuer_keypair.public_key, quantity)
@@ -165,7 +180,7 @@ def issue_command_handler(update, context):
             update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
             bot.send_message(admin_chat_id, f"User @{username} fail to create asset {asset_code}")
         else:
-            assets.document(asset_code).set({'code': asset_code, 'public': issuer_keypair.public_key, 'secret': issuer_keypair.secret, 'issued_by': username})
+            assets.document(asset_code).set({'code': asset_code, 'public': issuer_keypair.public_key, 'secret': issuer_keypair.secret, 'issued_by': uid, 'issued_by_user': username})
             update.message.reply_text(f"{quantity} of {asset_code} issued and transfered to your account. Use /balance to check it.")
             update.message.reply_text(f"To be able to receive your tokens other users have to run /trust {asset_code} command.")
             bot.send_message(admin_chat_id, f"New asset {asset_code} created by @{username}")
@@ -178,7 +193,7 @@ def list_command_handler(update, context):
     assets_list = [a.to_dict() for a in assets.stream()]
 
     for a in assets_list:
-        update.message.reply_text(f"{a['code']} issued by @{a['issued_by']}")
+        update.message.reply_text(f"{a['code']} issued by @{a['issued_by_user']}")
     
     if len(assets_list) > 0:
         update.message.reply_text("Use /trust <asset code> to trust the token")
@@ -476,24 +491,60 @@ def balance_command_handler(update, context):
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
     
     # TODO: Show balances of other users
-    
-    # Check if user is registered in Firebase
+    users_to_show = {}
+    error = False
+    entities = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
+    for e in entities:
+        if e.type == 'text_mention':
+            update.message.reply_text(f"Could not show balance of {e.user.first_name + ' ' + e.user.last_name}. Please ask him to register with @RoundiBot.")
+            bot.send_message(admin_chat_id, f"Balance requested for the user without username {e.user.id} {e.user.first_name + ' ' + e.user.last_name}")
+            error = True
+        elif e.type == 'mention':
+            username = update.message.parse_entity(e)
+            print('DEBUG!!! username', username)
+            users_ref = users.where(field_path='username', op_string='==', value=username).stream()
+            users_rec = [d for d in users_ref]
+            if len(users_rec) == 0:
+                update.message.reply_text(f"User {username} is not registered. Ask him/her to start @RoundiBot.")
+                error = True
+                continue
+            elif len(users_rec) > 1:
+                bot.send_message(admin_chat_id, f"Duplicate username in Firestore @{username}")
+                
+            user_info = users_rec[0].to_dict()
+            users_to_show[user_info['uid']] = username
+
+    # Get info of the requested user
     uid = f"{update.message.from_user.id}"
     username = update.message.from_user.username.lower()
-
+    if len(users_to_show) == 0 and not error:
+        users_to_show[uid] = username
+    
+    # Check if user is registered in Firebase
     user_rec = users.document(uid).get()
     if not user_rec.exists:
         update.message.reply_text("You are not registered yet. Please use command /start")
         return
-    user_info = user_rec.to_dict()
-    
-    balances = st_balance(user_info['public'])
-    
-    if len(balances) == 0:
-        update.message.reply_text("You do not have any assets. Please use /list command to see available assets and then /trust command to add it to your wallet.")
-    else:
-        balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
-        update.message.reply_text("You wallet balance:\n" + balance_string)
+
+    for u in users_to_show:
+        user_rec = users.document(u).get()
+        if not user_rec.exists:
+            update.message.reply_text(f"User @{users_to_show[u]} is not registered. Ask him/her to start @RoundiBot")
+            continue
+        user_info = user_rec.to_dict()
+        balances = st_balance(user_info['public'])
+
+        if len(balances) == 0:
+            if uid == u:
+                update.message.reply_text("You do not have any balance. Use /list command to see available assets and /trust command to add it to your wallet.")
+            else:
+                update.message.reply_text(f"User  @{users_to_show[u]} has no trusted assets.")
+        else:
+            balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
+            if uid == u:
+                update.message.reply_text("You wallet balance:\n" + balance_string)
+            else:
+                update.message.reply_text("@{users_to_show[u]} balance:\n" + balance_string)
 
     
 # /book command wrapper 
@@ -528,7 +579,14 @@ def book_command_handler(update, context):
             reply_markup = InlineKeyboardMarkup(keyboard)
             update.message.reply_text(offers_string, reply_markup=reply_markup)      
 
-        
+
+# /book command wrapper 
+def default_handler(update, context):
+    """Sends default answer."""
+    print('DEBUG!!!: default handler:\n', update)
+    update.message.reply_text('Unknown command or request. Please use /help command.')      
+
+
 # Init the Telegram application
 admin_chat_id = 419686805 # TODO: replace with settings from Firestore
 if os.getenv('BOT_ENV') == 'TEST':
@@ -544,7 +602,7 @@ else:
 
     # Create the dispatcher to register handlers
     dispatcher = Dispatcher(bot, None, use_context=True)
-
+    
 # define command handler
 #print('DEBUG!!! Adding handler')
 dispatcher.add_handler(CommandHandler("start", start_command_handler))
@@ -559,6 +617,7 @@ dispatcher.add_handler(CommandHandler(["pa", "pay"], pay_command_handler))
 dispatcher.add_handler(CommandHandler(["ba","balance"], balance_command_handler))
 dispatcher.add_handler(CommandHandler(["bo","book"], book_command_handler))
 dispatcher.add_handler(CallbackQueryHandler(button_callback_handler))
+dispatcher.add_handler(MessageHandler(Filters.text, default_handler))
 dispatcher.add_error_handler(error)
 # define message handler
 #dispatcher.add_handler(MessageHandler(filters.text, main_handler))
@@ -577,7 +636,7 @@ def webhook(request):
     try:
         if request.method == "POST":
             update = Update.de_json(request.get_json(force=True), bot)
-            #print('DEBUG!!! Updating process')
+            print('DEBUG!!! Updating bot with:\n', update)
             dispatcher.process_update(update)
             return ('', 200)
         else:
