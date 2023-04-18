@@ -485,11 +485,13 @@ def balance_command_handler(update, context):
     
     # TODO: Show balances of other users
     users_to_show = {}
+    error = False
     entities = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
     for e in entities:
         if e.type == 'text_mention':
             update.message.reply_text(f"Could not show balance of {e.user.first_name + ' ' + e.user.last_name}. Please ask him to register with @RoundiBot.")
             bot.send_message(admin_chat_id, f"Balance requested for the user without username {e.user.id} {e.user.first_name + ' ' + e.user.last_name}")
+            error = True
         elif e.type == 'mention':
             username = update.message.parse_entity(e)
             print('DEBUG!!! username', username)
@@ -497,6 +499,7 @@ def balance_command_handler(update, context):
             users_rec = [d for d in users_ref]
             if len(users_rec) == 0:
                 update.message.reply_text(f"User {username} is not registered. Ask him/her to start @RoundiBot.")
+                error = True
                 continue
             elif len(users_rec) > 1:
                 bot.send_message(admin_chat_id, f"Duplicate username in Firestore @{username}")
@@ -507,7 +510,7 @@ def balance_command_handler(update, context):
     # Get info of the requested user
     uid = f"{update.message.from_user.id}"
     username = update.message.from_user.username.lower()
-    if len(users_to_show) == 0:
+    if len(users_to_show) == 0 and not error:
         users_to_show[uid] = username
     
     # Check if user is registered in Firebase
