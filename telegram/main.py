@@ -477,6 +477,14 @@ def balance_command_handler(update, context):
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
     
     # TODO: Show balances of other users
+    if len(context.args) > 1:
+        update.message.reply_text("Syntax: /balance or /balance @<user name>")
+        return
+    
+    if len(context.args) == 1:
+        username = context.args[0]
+        print('DEBUG!!! user name from message', username)
+        print('DEBUG!!! update', update)
     
     # Check if user is registered in Firebase
     uid = f"{update.message.from_user.id}"
