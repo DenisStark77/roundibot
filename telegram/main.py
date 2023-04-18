@@ -93,7 +93,7 @@ def invite_command_handler(update, context):
     # Check if invited person has a Telegram username
     entities = [e for e in update.message.entities if e.type == 'text_mention']
     for e in entities:
-        update.message.reply_text(f"Could not invite {e.user.first_name + ' ' + e.user.last_name} as he does not have Telegram username. Please ask him set a Telegram username.")
+        update.message.reply_text(f"Could not invite {e.user.first_name + ' ' + e.user.last_name} as he does not have Telegram username. Please ask him to set a Telegram username.")
         bot.send_message(admin_chat_id, f"WARNING: Invite from @{update.message.from_user.username} for a user without username {e.user.id} {e.user.first_name + ' ' + e.user.last_name}")
         return
             
