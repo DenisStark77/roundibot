@@ -477,6 +477,11 @@ def balance_command_handler(update, context):
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
     
     print('DEBUG!!! update', update)
+    print('DEBUG!!! entities', update.message.entities)
+    
+    mention = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
+    if len(mention) > 0 and mention[0].user is not None:
+        print('DEBUG!!! user', mention[0].user)
 
     # TODO: Show balances of other users
     if len(context.args) > 1:
