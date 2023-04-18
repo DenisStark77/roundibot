@@ -48,13 +48,20 @@ def error(update, context):
 def start_command_handler(update, context):
     """Initialize wallet by creating Stellar account."""
     print('Message from user: ', update.message.from_user.id, update.message.from_user.username, update.message.chat.id)
-    # Check if uid exist in Firestore
+    
     uid = f"{update.message.from_user.id}"
     chat_id = f"{update.message.chat.id}"
+
+    if update.message.from_user.username is None:
+        print(f'WARNING: user {update.message.from_user.id} does not have a user name')
+        update.message.reply_text("Please setup your telegram username and repeat a /start command.")
+        return
+        
+    # Check if uid exist in Firestore
     user = users.document(uid).get()
     if user.exists:
         # TODO: Send context dependent hint what to do next
-        update.message.reply_text("To start use /list command to see available tokens")
+        update.message.reply_text("To see available tokens use /list command")
     else:
         # If not in Firestore check if user is invited
         username = update.message.from_user.username.lower()
@@ -476,42 +483,58 @@ def balance_command_handler(update, context):
     #TODO: If user do not have trusted assets offer to use /list command to add some assets
     #TODO: If user have several non zero balances and do not have own asset, offer to /issue own token
     
-    print('DEBUG!!! update', update)
-    print('DEBUG!!! entities', update.message.entities)
-    
+    # TODO: Show balances of other users
+    users_to_show = {}
     entities = [e for e in update.message.entities if e.type in ['mention', 'text_mention']]
     for e in entities:
-        if e.type == 'mention':
-            print('DEBUG!!! username', update.message.parse_entity(e))
-        elif e.type == 'text_mention':
-            print('DEBUG!!! user id', e.user.id)
-            
-    # TODO: Show balances of other users
-    if len(context.args) > 1:
-        update.message.reply_text("Syntax: /balance or /balance @<user name>")
-        return
-    
-    if len(context.args) == 1:
-        username = context.args[0]
-        print('DEBUG!!! user name from message', username)
-    
-    # Check if user is registered in Firebase
+        if e.type == 'text_mention':
+            update.message.reply_text(f"Could not show balance of {e.user.first_name + ' ' + e.user.last_name}. Please ask him to register with @RoundiBot.")
+            bot.send_message(admin_chat_id, f"Balance requested for the user without username {e.user.id} {e.user.first_name + ' ' + e.user.last_name}")
+        elif e.type == 'mention':
+            username = update.message.parse_entity(e)
+            print('DEBUG!!! username', username)
+            users_ref = users.where(field_path='username', op_string='==', value=username).stream()
+            users_rec = [d for d in users_ref]
+            if len(users_rec) == 0:
+                update.message.reply_text(f"User {username} is not registered. Ask him/her to start @RoundiBot.")
+                continue
+            elif len(users_rec) > 1:
+                bot.send_message(admin_chat_id, f"Duplicate username in Firestore @{username}")
+                
+            user_info = users_rec[0].to_dict()
+            users_to_show[user_info['uid']] = username
+
+    # Get info of the requested user
     uid = f"{update.message.from_user.id}"
     username = update.message.from_user.username.lower()
-
+    if len(users_to_show) == 0:
+        users_to_show[uid] = username
+    
+    # Check if user is registered in Firebase
     user_rec = users.document(uid).get()
     if not user_rec.exists:
         update.message.reply_text("You are not registered yet. Please use command /start")
         return
-    user_info = user_rec.to_dict()
-    
-    balances = st_balance(user_info['public'])
-    
-    if len(balances) == 0:
-        update.message.reply_text("You do not have any assets. Please use /list command to see available assets and then /trust command to add it to your wallet.")
-    else:
-        balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
-        update.message.reply_text("You wallet balance:\n" + balance_string)
+
+    for u in users_to_show:
+        user_rec = users.document(u).get()
+        if not user_rec.exists:
+            update.message.reply_text(f"User @{users_to_show[u]} is not registered. Ask him/her to start @RoundiBot")
+            continue
+        user_info = user_rec.to_dict()
+        balances = st_balance(user_info['public'])
+
+        if len(balances) == 0:
+            if uid == u:
+                update.message.reply_text("You do not have any balance. Use /list command to see available assets and /trust command to add it to your wallet.")
+            else:
+                update.message.reply_text(f"User  @{users_to_show[u]} has no trusted assets.")
+        else:
+            balance_string = '\n'.join(["%.2f %s" % (b['balance'], b['asset_code']) for b in balances])
+            if uid == u:
+                update.message.reply_text("You wallet balance:\n" + balance_string)
+            else:
+                update.message.reply_text("@{users_to_show[u]} balance:\n" + balance_string)
 
     
 # /book command wrapper 
