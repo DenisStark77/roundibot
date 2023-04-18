@@ -154,7 +154,7 @@ def issue_command_handler(update, context):
         asset_info = asset_rec.to_dict()
 
         # If exist and belong to current user issue extra tokens
-        if asset_info['issued_by'] == username:
+        if asset_info['issued_by'] == uid:
             issuer_keypair = Keypair.from_secret(asset_info['secret'])
             bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
             res = st_send(issuer_keypair, user_info['public'], asset_code, issuer_keypair.public_key, quantity)
@@ -173,7 +173,7 @@ def issue_command_handler(update, context):
             update.message.reply_text(f"Something went wrong. Please try again later. Admins are informed!")
             bot.send_message(admin_chat_id, f"User @{username} fail to create asset {asset_code}")
         else:
-            assets.document(asset_code).set({'code': asset_code, 'public': issuer_keypair.public_key, 'secret': issuer_keypair.secret, 'issued_by': username})
+            assets.document(asset_code).set({'code': asset_code, 'public': issuer_keypair.public_key, 'secret': issuer_keypair.secret, 'issued_by': uid, 'issued_by_user': username})
             update.message.reply_text(f"{quantity} of {asset_code} issued and transfered to your account. Use /balance to check it.")
             update.message.reply_text(f"To be able to receive your tokens other users have to run /trust {asset_code} command.")
             bot.send_message(admin_chat_id, f"New asset {asset_code} created by @{username}")
@@ -186,7 +186,7 @@ def list_command_handler(update, context):
     assets_list = [a.to_dict() for a in assets.stream()]
 
     for a in assets_list:
-        update.message.reply_text(f"{a['code']} issued by @{a['issued_by']}")
+        update.message.reply_text(f"{a['code']} issued by @{a['issued_by_user']}")
     
     if len(assets_list) > 0:
         update.message.reply_text("Use /trust <asset code> to trust the token")
