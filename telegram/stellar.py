@@ -75,7 +75,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
                 #  The `changeTrust` operation creates (or alters) a trustline
                 #  The `limit` parameter below is optional
                 .append_change_trust_op(asset=asset, limit="%d" % amount)
-                .set_timeout(100)
+                .set_timeout(300)
                 .build()
             )
         else:
@@ -88,7 +88,7 @@ def st_trust_asset(distributor_keypair, code, issuing_public, amount=None):
                 #  The `changeTrust` operation creates (or alters) a trustline
                 #  The `limit` parameter below is optional
                 .append_change_trust_op(asset=asset)
-                .set_timeout(100)
+                .set_timeout(300)
                 .build()
             )
 
