@@ -203,6 +203,8 @@ def list_command_handler(update, context):
 
 # /trust command wrapper 
 def trust_command_handler(update, context):
+    return
+    
     """Trust an asset in order to use it."""
     # Check a sintax
     if len(context.args) != 1:
